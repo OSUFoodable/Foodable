@@ -1,0 +1,24 @@
+{
+  "name": "foodable-mern",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Foodable MERN monorepo (client + server)",
+  "scripts": {
+    "dev": "concurrently \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "server": "npm --prefix server run dev",
+    "client": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
+    "start": "npm --prefix server run start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OSUFoodable/Foodable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OSUFoodable/Foodable/issues"
+  },
+  "homepage": "https://github.com/OSUFoodable/Foodable#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
