@@ -6,6 +6,7 @@ import Recipes from "./pages/Recipes.jsx";
 import MyLists from "./pages/MyLists.jsx";
 import Community from "./pages/Community.jsx";
 import Profile from "./pages/Profile.jsx";
+import IngredientsPage from "./pages/Ingredients.jsx";
 
 function App() {
   return (
@@ -37,6 +38,9 @@ function App() {
             <Link to="/discover" style={{ color: "white", textDecoration: "none" }}>
               Discover Foods
             </Link>
+            <Link to="/ingredients" style={{ color: "white", textDecoration: "none" }}>
+              Ingredients
+            </Link>
             <Link to="/recipes" style={{ color: "white", textDecoration: "none" }}>
               Recipes
             </Link>
@@ -59,6 +63,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/loggedin" element={<LoggedIn />} />
           <Route path="/discover" element={<Discover />} />
+          <Route path="/ingredients" element={<IngredientsPage />} />
           <Route path="/recipes" element={<Recipes />} />
           <Route path="/lists" element={<MyLists />} />
           <Route path="/community" element={<Community />} />
