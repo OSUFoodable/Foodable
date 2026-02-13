@@ -12,7 +12,7 @@ function getInitial(name) {
   return s[0].toUpperCase();
 }
 
-function PostCard({ post }) {
+function PostCard({ post, isSaved, onToggleSave }) {
   return (
     <article className="community-card">
       <div className="community-card-header">
@@ -26,6 +26,19 @@ function PostCard({ post }) {
           </div>
           <div className="community-card-date">{formatDate(post.createdAt)}</div>
         </div>
+
+        {/* Save / Unsave */}
+        <div style={{marginLeft: "auto" }}>
+          <button
+            type="button"
+            className="community-btn community-btn-ghost"
+            onClick={() => onToggleSave?.(post)}
+            disabled={!onToggleSave}
+            aria-label={isSaved ? "Unsave post" : "Save post"}
+          >
+            {isSaved ? "Unsave" : "Save"}
+          </button>
+        </div>
       </div>
 
       <div className="community-card-content">
@@ -37,7 +50,7 @@ function PostCard({ post }) {
         {Array.isArray(post.tags) && post.tags.length ? (
           <div className="community-tags">
             {post.tags.map((t) => (
-              <span className="community-tag" key={`${post.id}-${t}`}>
+              <span className="community-tag" key={`${post.id ?? post._id}-${t}`}>
                 {t}
               </span>
             ))}
@@ -48,7 +61,7 @@ function PostCard({ post }) {
   );
 }
 
-export default function PostsList({ posts, isLoading, error }) {
+export default function PostsList({ posts, isLoading, error, savedIdSet, onToggleSave,}) {
   if (isLoading) return <div className="community-muted">Loading posts...</div>;
   if (error) return <div className="community-error">{error}</div>;
   if (!posts.length) {
@@ -56,10 +69,20 @@ export default function PostsList({ posts, isLoading, error }) {
   }
 
   return (
-    <div className="community-list">
-      {posts.map((p) => (
-        <PostCard key={p.id || p._id} post={p} />
-      ))}
-    </div>
-  );
+  <div className="community-list">
+    {posts.map((p) => {
+      const id = p.id ?? p._id;              // your posts use id
+      const isSaved = savedIdSet?.has(id) ?? false;
+
+      return (
+        <PostCard
+          key={id}
+          post={p}
+          isSaved={isSaved}
+          onToggleSave={onToggleSave}
+        />
+      );
+    })}
+  </div>
+);
 }

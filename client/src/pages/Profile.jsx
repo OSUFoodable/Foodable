@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { loadDietPrefs, saveDietPrefs } from "../services/profileService";
 import { useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext.jsx";
+import { loadSavedPosts, unsavePost } from "../services/savedPostsService";
 
 const PREFS = [
   { key: "vegetarian", label: "Vegetarian" },
@@ -14,13 +15,15 @@ export default function Profile() {
   const { user } = useContext(AuthContext);
   if (!user) return <p>Loading user information...</p>;
 
-  const [dietPrefs, setDietPrefs] = useState(loadDietPrefs());
+  const [dietPrefs, setDietPrefs] = useState(() => loadDietPrefs(user));
   const [status, setStatus] = useState("");
+  const [savedPosts, setSavedPosts] = useState(() => loadSavedPosts(user));
 
   // Optional: re-load preferences if they are ever changed outside this page
   useEffect(() => {
-    setDietPrefs(loadDietPrefs());
-  }, []);
+    setDietPrefs(loadDietPrefs(user));
+    setSavedPosts(loadSavedPosts(user));
+  }, [user]);
 
   function togglePref(key) {
     setDietPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -28,7 +31,7 @@ export default function Profile() {
   }
 
   function handleSave() {
-    saveDietPrefs(dietPrefs);
+    saveDietPrefs(user, dietPrefs);
     setStatus("Saved!");
   }
 
@@ -92,6 +95,52 @@ export default function Profile() {
         </button>
         {status && <span style={{ alignSelf: "center" }}>{status}</span>}
       </div>
+
+      <hr style={{ margin: "1.5rem 0" }} />
+
+      <h2>Saved Posts</h2>
+
+      {savedPosts.length === 0 ? (
+        <p style={{ opacity: 0.75 }}>No saved posts yet.</p>
+      ) : (
+        <div style={{ marginTop: "1rem", display: "grid", gap: "0.75rem" }}>
+          {savedPosts.map((post) => {
+            const id = post.id ?? post._id;
+
+            return (
+              <article
+                key={id}
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 10,
+                  padding: "0.75rem 1rem",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div>
+                    <div style={{ fontWeight: 700 }}>
+                      {post.title?.trim() ? post.title : "untitled"}
+                    </div>
+                    <div style={{ fontSize: 13, opacity: 0.75 }}>
+                      {post.author || "Anonymous"}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => id && setSavedPosts(unsavePost(user, id))}
+                    style={{ padding: "0.4rem 0.75rem" }}
+                  >
+                    Unsave
+                  </button>
+                </div>
+
+                {post.body && <p style={{ marginTop: 10 }}>{post.body}</p>}
+              </article>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

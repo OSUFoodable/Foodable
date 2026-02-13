@@ -4,6 +4,7 @@ import CreatePostDialog from "../components/CreatePostDialog";
 import PostsList from "../components/PostsList";
 import { useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext.jsx";
+import { loadSavedPosts, savePost, unsavePost } from "../services/savedPostsService"; // Save/Unsave button
 
 export default function Community() {
   const { user, logout } = useContext(AuthContext);
@@ -13,6 +14,24 @@ export default function Community() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Saved posts for this user
+  const [savedPosts, setSavedPosts] = useState(() => loadSavedPosts(user));
+
+  const savedIdSet = useMemo(() => {
+    return new Set(savedPosts.map((p) => p.id));
+  }, [savedPosts]);
+
+  function handleToggleSave(post) {
+    const id = post?.id;
+    if (!id) return;
+
+    if (savedIdSet.has(id)) {
+      setSavedPosts(unsavePost(user, id));
+    } else {
+      setSavedPosts(savePost(user, post));
+    }
+  }
 
   async function load() {
     setError("");
@@ -77,7 +96,7 @@ export default function Community() {
         </header>
 
         <main className="community-feed">
-          <PostsList posts={posts} isLoading={isLoading} error={error} />
+          <PostsList posts={posts} isLoading={isLoading} error={error} savedIdSet={savedIdSet} onToggleSave={handleToggleSave}/>
         </main>
       </div>
 
@@ -86,7 +105,7 @@ export default function Community() {
         onClose={() => setIsDialogOpen(false)}
         onCreate={handleCreate}
       />
->>>>>>> 677df411667ecef39909fc88b3407537ccdafef3
+
     </div>
   );
 }
