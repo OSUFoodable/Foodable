@@ -3,7 +3,7 @@ import { createCommunityPost, getPosts } from "../services/communityPostsService
 import CreatePostDialog from "../components/CreatePostDialog";
 import PostsList from "../components/PostsList";
 import { useContext } from "react";
-import { AuthContext } from "../contexts/AuthContext.jsx";
+import { AuthContext } from "../context/AuthContext.jsx";
 
 export default function Community() {
   const { user, logout } = useContext(AuthContext);
@@ -86,7 +86,6 @@ export default function Community() {
         onClose={() => setIsDialogOpen(false)}
         onCreate={handleCreate}
       />
->>>>>>> 677df411667ecef39909fc88b3407537ccdafef3
     </div>
   );
 }

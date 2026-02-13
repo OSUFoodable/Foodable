@@ -4,8 +4,13 @@ import { useEffect, useState } from 'react';
 import IngredientForm from '../components/IngredientForm';
 import IngredientList from '../components/IngredientList';
 import { listIngredients, addIngredient } from '../services/ingredientsService';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext.jsx';
 
 export default function IngredientsPage() {
+  const { user } = useContext(AuthContext);
+  if (!user) return <p>Loading user information...</p>;
+
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -54,6 +59,7 @@ export default function IngredientsPage() {
 
   return (
     <div style={{ display: 'grid', gap: 16, padding: 16 }}>
+      <h2>Welcome, {user["cognito:username"]}!</h2>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>Ingredients</h1>
         <div style={{ fontSize: 12, opacity: 0.7 }}>

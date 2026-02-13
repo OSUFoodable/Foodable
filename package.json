@@ -20,5 +20,8 @@
   "homepage": "https://github.com/OSUFoodable/Foodable#readme",
   "devDependencies": {
     "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "jwt-decode": "^4.0.0"
   }
 }
