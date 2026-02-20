@@ -10,6 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 import Recipe from "./models/Recipe.js";
+import Ingredient from "./models/Ingredient.js";
 
 // simple health routes
 app.get("/api/health", (_req, res) => {
@@ -20,35 +21,141 @@ app.get("/api/ping", (_req, res) => {
 	res.send("pong");
 });
 
-app.get("/api/recipes", async (req, res) => {
-	const recipes = await Recipe.find({});
-	res.json(recipes);
+// ---- Recipe CRUD ----
+
+app.get("/api/recipes", async (_req, res) => {
+	try {
+		const recipes = await Recipe.find({});
+		res.json(recipes);
+	} catch (err) {
+		res.status(500).json({ error: { message: err.message } });
+	}
 });
 
 app.post("/api/recipes", async (req, res) => {
-	const newRecipe = new Recipe(req.body);
-	const savedRecipe = await newRecipe.save();
-	res.json(savedRecipe);
+	try {
+		const newRecipe = new Recipe(req.body);
+		const savedRecipe = await newRecipe.save();
+		res.status(201).json(savedRecipe);
+	} catch (err) {
+		res.status(400).json({ error: { message: err.message } });
+	}
 });
 
 app.get("/api/recipes/:id", async (req, res) => {
-	const recipe = await Recipe.findById(req.params.id);
-	res.json(recipe);
+	try {
+		const recipe = await Recipe.findById(req.params.id);
+		if (!recipe)
+			return res
+				.status(404)
+				.json({ error: { message: "Recipe not found" } });
+		res.json(recipe);
+	} catch (err) {
+		res.status(400).json({ error: { message: err.message } });
+	}
 });
 
 app.put("/api/recipes/:id", async (req, res) => {
-	const updatedRecipe = await Recipe.findByIdAndUpdate(req.params.id, req.body, {
-		new: true,
-	});
-	res.json(updatedRecipe);
+	try {
+		const updatedRecipe = await Recipe.findByIdAndUpdate(
+			req.params.id,
+			req.body,
+			{
+				new: true,
+				runValidators: true,
+			},
+		);
+		if (!updatedRecipe)
+			return res
+				.status(404)
+				.json({ error: { message: "Recipe not found" } });
+		res.json(updatedRecipe);
+	} catch (err) {
+		res.status(400).json({ error: { message: err.message } });
+	}
 });
 
 app.delete("/api/recipes/:id", async (req, res) => {
-	await Recipe.findByIdAndDelete(req.params.id);
-	res.json({ message: "Recipe deleted successfully" });
+	try {
+		const deleted = await Recipe.findByIdAndDelete(req.params.id);
+		if (!deleted)
+			return res
+				.status(404)
+				.json({ error: { message: "Recipe not found" } });
+		res.json({ message: "Recipe deleted successfully" });
+	} catch (err) {
+		res.status(400).json({ error: { message: err.message } });
+	}
 });
 
-const PORT = process.env.PORT || 5000;
+// ---- Ingredient CRUD ----
+
+app.get("/api/ingredients", async (_req, res) => {
+	try {
+		const ingredients = await Ingredient.find({});
+		res.json({ items: ingredients });
+	} catch (err) {
+		res.status(500).json({ error: { message: err.message } });
+	}
+});
+
+app.post("/api/ingredients", async (req, res) => {
+	try {
+		const newIngredient = new Ingredient(req.body);
+		const saved = await newIngredient.save();
+		res.status(201).json(saved);
+	} catch (err) {
+		res.status(400).json({ error: { message: err.message } });
+	}
+});
+
+app.get("/api/ingredients/:id", async (req, res) => {
+	try {
+		const ingredient = await Ingredient.findById(req.params.id);
+		if (!ingredient)
+			return res
+				.status(404)
+				.json({ error: { message: "Ingredient not found" } });
+		res.json(ingredient);
+	} catch (err) {
+		res.status(400).json({ error: { message: err.message } });
+	}
+});
+
+app.put("/api/ingredients/:id", async (req, res) => {
+	try {
+		const updated = await Ingredient.findByIdAndUpdate(
+			req.params.id,
+			req.body,
+			{
+				new: true,
+				runValidators: true,
+			},
+		);
+		if (!updated)
+			return res
+				.status(404)
+				.json({ error: { message: "Ingredient not found" } });
+		res.json(updated);
+	} catch (err) {
+		res.status(400).json({ error: { message: err.message } });
+	}
+});
+
+app.delete("/api/ingredients/:id", async (req, res) => {
+	try {
+		const deleted = await Ingredient.findByIdAndDelete(req.params.id);
+		if (!deleted)
+			return res
+				.status(404)
+				.json({ error: { message: "Ingredient not found" } });
+		res.json({ message: "Ingredient deleted successfully" });
+	} catch (err) {
+		res.status(400).json({ error: { message: err.message } });
+	}
+});
+
+const PORT = process.env.PORT || 5050;
 const MONGODB_URI = process.env.MONGODB_URI;
 
 async function start() {

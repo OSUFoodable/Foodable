@@ -69,11 +69,11 @@ function pickRecipeFromStore() {
 
 export const handlers = [
   // ---- Ingredients ----
-  http.get(`${import.meta.env.VITE_API_URL}/ingredients`, async () => {
+  http.get('/api/ingredients', async () => {
     return HttpResponse.json({ items: store });
   }),
 
-  http.post(`${import.meta.env.VITE_API_URL}/ingredients`, async ({ request }) => {
+  http.post('/api/ingredients', async ({ request }) => {
     const body = await request.json();
     const item = {
       id: crypto.randomUUID(),
@@ -86,8 +86,27 @@ export const handlers = [
     return HttpResponse.json(item, { status: 201 });
   }),
 
+  http.put('/api/ingredients/:id', async ({ params, request }) => {
+    const body = await request.json();
+    const idx = store.findIndex((x) => x.id === params.id);
+    if (idx === -1) {
+      return HttpResponse.json({ error: { message: 'Ingredient not found' } }, { status: 404 });
+    }
+    store[idx] = { ...store[idx], ...body };
+    return HttpResponse.json(store[idx]);
+  }),
+
+  http.delete('/api/ingredients/:id', async ({ params }) => {
+    const idx = store.findIndex((x) => x.id === params.id);
+    if (idx === -1) {
+      return HttpResponse.json({ error: { message: 'Ingredient not found' } }, { status: 404 });
+    }
+    store.splice(idx, 1);
+    return HttpResponse.json({ message: 'Ingredient deleted successfully' });
+  }),
+
   // ---- Recipe (based on current mock store) ----
-  http.get(`${import.meta.env.VITE_API_URL}/recipe`, async () => {
+  http.get('/api/recipes', async () => {
     const recipe = pickRecipeFromStore();
     return HttpResponse.json(recipe);
   }),

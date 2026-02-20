@@ -1,6 +1,6 @@
 // src/services/apiClient.js
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_API_URL || "";
 
 export async function apiFetch(path, options = {}) {
   const headers = new Headers(options.headers || {});

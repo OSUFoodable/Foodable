@@ -2,7 +2,7 @@
 // Updated page: fetches and displays a recipe based on current ingredients.
 
 import { useState } from 'react';
-import { getRecipe } from '../services/recipesService';
+import { getRecipes } from '../services/recipesService';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext.jsx';
 
@@ -18,7 +18,7 @@ export default function Recipes() {
     setLoading(true);
     setError('');
     try {
-      const data = await getRecipe();
+      const data = await getRecipes();
       setRecipe(data);
     } catch (e) {
       setError(e.message || 'Failed to get recipe');
