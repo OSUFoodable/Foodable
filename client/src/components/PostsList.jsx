@@ -71,7 +71,7 @@ export default function PostsList({ posts, isLoading, error, savedIdSet, onToggl
   return (
   <div className="community-list">
     {posts.map((p) => {
-      const id = p.id ?? p._id;              // your posts use id
+      const id = p.id ?? p._id;              
       const isSaved = savedIdSet?.has(id) ?? false;
 
       return (
