@@ -4,6 +4,7 @@ import { loadDietPrefs, saveDietPrefs } from "../services/profileService";
 import { useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext.jsx";
 import { loadSavedPosts, unsavePost } from "../services/savedPostsService";
+import { AuthContext } from "../context/AuthContext.jsx";
 
 const PREFS = [
   { key: "vegetarian", label: "Vegetarian" },

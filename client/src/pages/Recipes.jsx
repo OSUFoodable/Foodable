@@ -3,8 +3,13 @@
 
 import { useState } from 'react';
 import { getRecipe } from '../services/recipesService';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext.jsx';
 
 export default function Recipes() {
+  const { user } = useContext(AuthContext);
+  if (!user) return <p>Loading user information...</p>;
+
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -24,6 +29,7 @@ export default function Recipes() {
 
   return (
     <div style={{ padding: '1.5rem', display: 'grid', gap: 16 }}>
+      <h2>Welcome, {user["cognito:username"]}!</h2>
       <h1>Recipes</h1>
       <p>Generate a recipe based on your ingredients.</p>
 

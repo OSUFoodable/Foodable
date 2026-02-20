@@ -5,6 +5,7 @@ import PostsList from "../components/PostsList";
 import { useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext.jsx";
 import { loadSavedPosts, savePost, unsavePost } from "../services/savedPostsService"; // Save/Unsave button
+import { AuthContext } from "../context/AuthContext.jsx";
 
 export default function Community() {
   const { user, logout } = useContext(AuthContext);

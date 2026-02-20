@@ -29,10 +29,9 @@ function App() {
             gap: "2rem",           // space between logo and links
           }}
         >
-          <div style={{ fontWeight: 700, fontSize: "1.5rem" }}>Foodable</div>
-
+          <Link to="/" style={{ fongWeight: 700, fontSize: "1.5rem", color: "white", fontWeight: "bold"}}>Foodable</Link>
           <nav style={{ display: "flex", gap: "1.25rem" }}>
-            <Link to="/" style={{ color: "white", textDecoration: "none" }}>
+            <Link to="/loggedin" style={{ color: "white", textDecoration: "none" }}>
               Home
             </Link>
             <Link to="/discover" style={{ color: "white", textDecoration: "none" }}>
