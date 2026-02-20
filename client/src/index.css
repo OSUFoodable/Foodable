@@ -365,3 +365,1218 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+/* Ingredients page, award level UX: clean, minimal, scoped */
+
+.ing2 {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  gap: 14px;
+}
+
+.ing2 * {
+  box-sizing: border-box;
+}
+
+.ing2_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.ing2_title {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+.ing2_sub {
+  margin-top: 6px;
+  font-size: 13px;
+  opacity: 0.82;
+}
+
+.ing2_subtle {
+  opacity: 0.8;
+}
+
+.ing2_mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.ing2_actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ing2_card {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.ing2_alert {
+  border: 1px solid rgba(220, 20, 60, 0.35);
+  background: rgba(220, 20, 60, 0.12);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.ing2_btn {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.06s ease, background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.ing2_btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ing2_btn:active {
+  transform: scale(0.99);
+}
+
+.ing2_btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ing2_btnGhost {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ing2_btnPrimary {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(99, 102, 241, 0.28);
+}
+
+.ing2_btnPrimary:hover {
+  background: rgba(99, 102, 241, 0.36);
+}
+
+.ing2_btnDanger {
+  border-color: rgba(220, 20, 60, 0.35);
+  background: rgba(220, 20, 60, 0.18);
+}
+
+.ing2_btnDanger:hover {
+  background: rgba(220, 20, 60, 0.26);
+}
+
+.ing2_label {
+  font-size: 12px;
+  opacity: 0.82;
+}
+
+.ing2_input,
+.ing2_select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.18);
+  color: inherit;
+  outline: none;
+  min-width: 0;
+  appearance: none;
+}
+
+.ing2_input:focus,
+.ing2_select:focus {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.ing2_inputLg {
+  padding: 12px 14px;
+  font-size: 15px;
+}
+
+.ing2_field {
+  display: grid;
+  gap: 6px;
+}
+
+/* Add bar */
+.ing2_add {
+  display: grid;
+  gap: 12px;
+}
+
+.ing2_addRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.ing2_addMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.ing2_link {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  opacity: 0.88;
+  cursor: pointer;
+  padding: 6px 0;
+  text-decoration: underline;
+}
+
+.ing2_hint {
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.ing2_addDetails {
+  display: grid;
+  grid-template-columns: 160px 220px;
+  gap: 12px;
+  align-items: end;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+/* Filters */
+.ing2_filtersGrid {
+  display: grid;
+  grid-template-columns: 1.5fr 0.8fr 0.8fr;
+  gap: 12px;
+}
+
+/* List */
+.ing2_listTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.ing2_meta {
+  font-size: 13px;
+  opacity: 0.82;
+}
+
+.ing2_listActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ing2_tableWrap {
+  width: 100%;
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ing2_table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.ing2_table thead th {
+  text-align: left;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ing2_table tbody td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  vertical-align: middle;
+}
+
+.ing2_table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ing2_colCheck {
+  width: 88px;
+}
+
+.ing2_colNum {
+  width: 110px;
+}
+
+.ing2_colActions {
+  width: 190px;
+}
+
+.ing2_cellStrong {
+  font-weight: 650;
+}
+
+.ing2_nameCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ing2_checkbox {
+  width: 16px;
+  height: 16px;
+}
+
+.ing2_empty {
+  padding: 18px 12px;
+  opacity: 0.75;
+}
+
+.ing2_rowSelected {
+  background: rgba(99, 102, 241, 0.12);
+}
+
+.ing2_rowActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.ing2_btnSmall {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  cursor: pointer;
+}
+
+.ing2_btnSmallGhost:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ing2_btnSmallDanger {
+  border-color: rgba(220, 20, 60, 0.35);
+  background: rgba(220, 20, 60, 0.16);
+}
+
+.ing2_btnSmallDanger:hover {
+  background: rgba(220, 20, 60, 0.24);
+}
+
+/* Bottom bar */
+.ing2_bottom {
+  position: sticky;
+  bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(20, 20, 20, 0.72);
+  backdrop-filter: blur(10px);
+  opacity: 0.72;
+}
+
+.ing2_bottomOn {
+  opacity: 1;
+}
+
+.ing2_bottomTitle {
+  font-weight: 750;
+}
+
+.ing2_bottomSub {
+  font-size: 12px;
+  opacity: 0.78;
+  margin-top: 2px;
+}
+
+/* More menu */
+.ing2_moreWrap {
+  position: relative;
+}
+
+.ing2_moreMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 20;
+  min-width: 220px;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(25, 25, 25, 0.96);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+}
+
+.ing2_menuItem {
+  width: 100%;
+  text-align: left;
+  padding: 10px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ing2_menuItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ing2_menuItem:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Modals */
+.ing2_modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.ing2_modal {
+  width: min(720px, 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(24, 24, 24, 0.98);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.ing2_modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.ing2_modalTitle {
+  font-weight: 750;
+}
+
+.ing2_modalBody {
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.ing2_modalGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ing2_modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.ing2_confirmText {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.ing2_confirmStrong {
+  font-weight: 750;
+}
+
+/* Toast */
+.ing2_toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 60;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(18, 18, 18, 0.92);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 880px) {
+  .ing2_header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ing2_filtersGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ing2_addDetails {
+    grid-template-columns: 1fr;
+  }
+
+  .ing2_modalGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ing2_table {
+    min-width: 760px;
+  }
+}
+/* Ingredients page (ing3): main stays structured, sidebar becomes minimalist */
+
+.ing3 {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  gap: 14px;
+}
+
+.ing3 * {
+  box-sizing: border-box;
+}
+
+.ing3_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.ing3_title {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+.ing3_sub {
+  margin-top: 6px;
+  font-size: 13px;
+  opacity: 0.82;
+}
+
+.ing3_subtle {
+  opacity: 0.8;
+}
+
+.ing3_mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.ing3_actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ing3_layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 14px;
+  align-items: start;
+}
+
+.ing3_main {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.ing3_side {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* Main cards keep structure */
+.ing3_card {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  padding: 14px;
+  min-width: 0;
+}
+
+/* Sidebar is minimalist: remove big box feel */
+.ing3_sideCard {
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.ing3_alert {
+  border: 1px solid rgba(220, 20, 60, 0.35);
+  background: rgba(220, 20, 60, 0.12);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+/* Buttons and inputs */
+.ing3_btn {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.06s ease, background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.ing3_btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ing3_btn:active {
+  transform: scale(0.99);
+}
+
+.ing3_btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ing3_btnGhost {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ing3_btnPrimary {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(99, 102, 241, 0.28);
+}
+
+.ing3_btnPrimary:hover {
+  background: rgba(99, 102, 241, 0.36);
+}
+
+.ing3_btnDanger {
+  border-color: rgba(220, 20, 60, 0.35);
+  background: rgba(220, 20, 60, 0.18);
+}
+
+.ing3_btnDanger:hover {
+  background: rgba(220, 20, 60, 0.26);
+}
+
+.ing3_btnFull {
+  width: 100%;
+}
+
+.ing3_btnTight {
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.ing3_label {
+  font-size: 12px;
+  opacity: 0.82;
+}
+
+.ing3_input,
+.ing3_select,
+.ing3_textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.18);
+  color: inherit;
+  outline: none;
+  min-width: 0;
+  appearance: none;
+}
+
+.ing3_textarea {
+  resize: vertical;
+  line-height: 1.4;
+}
+
+.ing3_input:focus,
+.ing3_select:focus,
+.ing3_textarea:focus {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.ing3_inputLg {
+  padding: 12px 14px;
+  font-size: 15px;
+}
+
+.ing3_field {
+  display: grid;
+  gap: 6px;
+}
+
+.ing3_divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 12px 0;
+}
+
+.ing3_dividerSoft {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ing3_note {
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.ing3_noteTight {
+  margin-top: 8px;
+}
+
+/* Recipe builder top card */
+.ing3_recipeTop {
+  padding: 16px 14px;
+}
+
+.ing3_recipeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.ing3_recipeTitle {
+  font-weight: 800;
+}
+
+.ing3_recipeSub {
+  margin-top: 4px;
+  font-size: 13px;
+  opacity: 0.82;
+}
+
+.ing3_recipeCounts {
+  opacity: 0.85;
+}
+
+/* Add bar */
+.ing3_add {
+  display: grid;
+  gap: 12px;
+}
+
+.ing3_addRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.ing3_addMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.ing3_link {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  opacity: 0.88;
+  cursor: pointer;
+  padding: 6px 0;
+  text-decoration: underline;
+}
+
+.ing3_linkInline {
+  text-decoration: underline;
+  padding: 0;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.ing3_hint {
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.ing3_addDetails {
+  display: grid;
+  grid-template-columns: 160px 220px;
+  gap: 12px;
+  align-items: end;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+/* Filters */
+.ing3_filtersGrid {
+  display: grid;
+  grid-template-columns: 1.5fr 0.8fr 0.8fr;
+  gap: 12px;
+}
+
+.ing3_details {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px 12px;
+}
+
+.ing3_detailsSummary {
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.ing3_detailsBody {
+  margin-top: 12px;
+}
+
+/* List */
+.ing3_listTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.ing3_meta {
+  font-size: 13px;
+  opacity: 0.82;
+}
+
+.ing3_listActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ing3_tableWrap {
+  width: 100%;
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ing3_table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.ing3_table thead th {
+  text-align: left;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ing3_table tbody td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  vertical-align: middle;
+}
+
+.ing3_table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ing3_colCheck {
+  width: 88px;
+}
+
+.ing3_colNum {
+  width: 110px;
+}
+
+.ing3_colActions {
+  width: 210px;
+}
+
+.ing3_cellStrong {
+  font-weight: 650;
+}
+
+.ing3_nameCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ing3_checkbox {
+  width: 16px;
+  height: 16px;
+}
+
+.ing3_empty {
+  padding: 18px 12px;
+  opacity: 0.75;
+}
+
+.ing3_rowSelected {
+  background: rgba(99, 102, 241, 0.12);
+}
+
+.ing3_rowActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.ing3_btnSmall {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.ing3_btnSmallGhost:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ing3_btnSmallDanger {
+  border-color: rgba(220, 20, 60, 0.35);
+  background: rgba(220, 20, 60, 0.16);
+}
+
+.ing3_btnSmallDanger:hover {
+  background: rgba(220, 20, 60, 0.24);
+}
+
+/* Favorite star */
+.ing3_star {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 6px 8px;
+  cursor: pointer;
+  line-height: 1;
+  font-size: 14px;
+  color: inherit;
+  opacity: 0.9;
+}
+
+.ing3_star:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ing3_starOn {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+/* Sidebar headings (minimal separators) */
+.ing3_sideHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.ing3_sideBody {
+  margin-top: 12px;
+}
+
+.ing3_sideTitleBtn {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ing3_sideTitle {
+  font-weight: 800;
+}
+
+.ing3_chev {
+  opacity: 0.7;
+}
+
+.ing3_sideSubTitle {
+  font-weight: 750;
+  margin-bottom: 8px;
+}
+
+/* Packs (lighter) */
+.ing3_packList {
+  display: grid;
+  gap: 12px;
+}
+
+.ing3_pack {
+  padding: 10px 0 0;
+}
+
+.ing3_packTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.ing3_packName {
+  font-weight: 700;
+}
+
+.ing3_packActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ing3_chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.ing3_chip {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.ing3_chipMuted {
+  opacity: 0.65;
+}
+
+/* Staples (lighter rows) */
+.ing3_staplesTop {
+  margin-bottom: 10px;
+}
+
+.ing3_staplesList {
+  display: grid;
+  gap: 8px;
+}
+
+.ing3_stapleRow {
+  display: grid;
+  grid-template-columns: 18px 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ing3_stapleName {
+  font-size: 13px;
+}
+
+.ing3_stapleBadge {
+  font-size: 12px;
+  opacity: 0.7;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ing3_badgeOn {
+  opacity: 0.9;
+  border-color: rgba(99, 102, 241, 0.35);
+  background: rgba(99, 102, 241, 0.12);
+}
+
+/* Shortcuts */
+.ing3_shortcutsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ing3_shortcutBtn {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: inherit;
+}
+
+.ing3_shortcutBtn:hover {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+/* More menu */
+.ing3_moreWrap {
+  position: relative;
+}
+
+.ing3_moreMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 20;
+  min-width: 220px;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(25, 25, 25, 0.96);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+}
+
+.ing3_menuItem {
+  width: 100%;
+  text-align: left;
+  padding: 10px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ing3_menuItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ing3_menuItem:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Modals */
+.ing3_modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.ing3_modal {
+  width: min(720px, 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(24, 24, 24, 0.98);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.ing3_modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.ing3_modalTitle {
+  font-weight: 750;
+}
+
+.ing3_modalBody {
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.ing3_modalGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ing3_modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.ing3_confirmText {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.ing3_confirmStrong {
+  font-weight: 750;
+}
+
+/* Toast */
+.ing3_toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 60;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(18, 18, 18, 0.92);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+  .ing3_layout {
+    grid-template-columns: 1fr;
+  }
+  .ing3_table {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 880px) {
+  .ing3_header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ing3_filtersGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ing3_addDetails {
+    grid-template-columns: 1fr;
+  }
+
+  .ing3_modalGrid {
+    grid-template-columns: 1fr;
+  }
+}
