@@ -121,6 +121,9 @@ function makeId() {
    Main Component
 ------------------------ */
 export default function IngredientsPage() {
+  const { user } = useContext(AuthContext);
+  if (!user) return <p>Loading user information...</p>;
+
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
