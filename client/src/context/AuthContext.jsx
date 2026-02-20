@@ -22,6 +22,9 @@ export function Authentication({ children }) {
             setIdToken(storedIdToken);
             setAccessToken(storedAccessToken);
             setUser(jwtDecode(storedIdToken));
+        } else {
+        // DEV FALLBACK so pages don't hang before Cognito login is wired
+        setUser({ "cognito:username": "dev-user" });
         }
     }, []);
 

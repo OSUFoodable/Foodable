@@ -3,21 +3,29 @@ import { createCommunityPost, getPosts } from "../services/communityPostsService
 import CreatePostDialog from "../components/CreatePostDialog";
 import PostsList from "../components/PostsList";
 import { useContext } from "react";
-import { AuthContext } from "../contexts/AuthContext.jsx";
 import { loadSavedPosts, savePost, unsavePost } from "../services/savedPostsService"; // Save/Unsave button
 import { AuthContext } from "../context/AuthContext.jsx";
 
+const getUsername = (user) =>
+  user?.["cognito:username"] || user?.username || user?.email || "anonymous";
+
 export default function Community() {
-  const { user, logout } = useContext(AuthContext);
-  if (!user) return <p>Loading user information...</p>;
+  const { user } = useContext(AuthContext);
+
+  const username = useMemo(() => getUsername(user), [user]);
 
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Saved posts for this user
-  const [savedPosts, setSavedPosts] = useState(() => loadSavedPosts(user));
+  // Saved posts for this user (load when user becomes available or changes)
+  const [savedPosts, setSavedPosts] = useState([]);
+
+  useEffect(() => {
+    if (!user) return;
+    setSavedPosts(loadSavedPosts(user));
+  }, [user]);
 
   const savedIdSet = useMemo(() => {
     return new Set(savedPosts.map((p) => p.id));
@@ -25,7 +33,7 @@ export default function Community() {
 
   function handleToggleSave(post) {
     const id = post?.id;
-    if (!id) return;
+    if (!id || !user) return;
 
     if (savedIdSet.has(id)) {
       setSavedPosts(unsavePost(user, id));
@@ -62,9 +70,12 @@ export default function Community() {
     return posts.length === 1 ? "1 post" : `${posts.length} posts`;
   }, [isLoading, posts.length]);
 
+  if (!user) return <p>Loading user information...</p>;
+
   return (
     <div className="community-page">
-      <h2>Welcome, {user["cognito:username"]}!</h2>
+      <h2>Welcome, {username}!</h2>
+
       <div className="community-shell">
         <header className="community-header">
           <div className="community-header-left">
@@ -97,7 +108,13 @@ export default function Community() {
         </header>
 
         <main className="community-feed">
-          <PostsList posts={posts} isLoading={isLoading} error={error} savedIdSet={savedIdSet} onToggleSave={handleToggleSave}/>
+          <PostsList
+            posts={posts}
+            isLoading={isLoading}
+            error={error}
+            savedIdSet={savedIdSet}
+            onToggleSave={handleToggleSave}
+          />
         </main>
       </div>
 
@@ -106,7 +123,6 @@ export default function Community() {
         onClose={() => setIsDialogOpen(false)}
         onCreate={handleCreate}
       />
-
     </div>
   );
 }

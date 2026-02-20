@@ -1,6 +1,11 @@
 // src/services/savedPostsService.js
 function getUsername(user) {
-  return user?.["cognito:username"] || "guest";
+  return (
+    user?.["cognito:username"] ||
+    user?.username ||
+    user?.email ||
+    "guest"
+  );
 }
 
 function storageKey(user) {
@@ -18,18 +23,19 @@ export function loadSavedPosts(user) {
 }
 
 export function isPostSaved(user, postId) {
+  if (!postId) return false;
   const saved = loadSavedPosts(user);
   return saved.some((p) => p.id === postId);
 }
 
 export function savePost(user, post) {
-  const saved = loadSavedPosts(user);
-  const postId = post.id;
+  const postId = post?.id;
+  if (!postId) return loadSavedPosts(user);
 
-  if (!postId) return saved; // safety
+  const saved = loadSavedPosts(user);
 
   // avoid duplicates
-  if (saved.some((p) => (p.id) === postId)) return saved;
+  if (saved.some((p) => p.id === postId)) return saved;
 
   const updated = [post, ...saved];
   localStorage.setItem(storageKey(user), JSON.stringify(updated));
@@ -37,8 +43,10 @@ export function savePost(user, post) {
 }
 
 export function unsavePost(user, postId) {
+  if (!postId) return loadSavedPosts(user);
+
   const saved = loadSavedPosts(user);
-  const updated = saved.filter((p) => (p.id) !== postId);
+  const updated = saved.filter((p) => p.id !== postId);
   localStorage.setItem(storageKey(user), JSON.stringify(updated));
   return updated;
 }
