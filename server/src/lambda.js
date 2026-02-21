@@ -1,0 +1,167 @@
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+import serverless from "serverless-http";
+
+dotenv.config();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+import Recipe from "./models/Recipe.js";
+import Ingredient from "./models/Ingredient.js";
+
+// ---------------------------
+// Use a router with /default prefix
+const router = express.Router();
+
+// --- Health routes ---
+router.get("/api/health", (_req, res) => {
+  res.json({ ok: true, service: "api", ts: new Date().toISOString() });
+});
+
+router.get("/api/ping", (_req, res) => res.send("pong"));
+
+// ---- Recipe CRUD ----
+router.get("/api/recipes", async (_req, res) => {
+  try {
+    const recipes = await Recipe.find({});
+    res.json(recipes);
+  } catch (err) {
+    res.status(500).json({ error: { message: err.message } });
+  }
+});
+
+router.post("/api/recipes", async (req, res) => {
+  try {
+    const newRecipe = new Recipe(req.body);
+    const savedRecipe = await newRecipe.save();
+    res.status(201).json(savedRecipe);
+  } catch (err) {
+    res.status(400).json({ error: { message: err.message } });
+  }
+});
+
+router.get("/api/recipes/:id", async (req, res) => {
+  try {
+    const recipe = await Recipe.findById(req.params.id);
+    if (!recipe)
+      return res.status(404).json({ error: { message: "Recipe not found" } });
+    res.json(recipe);
+  } catch (err) {
+    res.status(400).json({ error: { message: err.message } });
+  }
+});
+
+router.put("/api/recipes/:id", async (req, res) => {
+  try {
+    const updatedRecipe = await Recipe.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    if (!updatedRecipe)
+      return res.status(404).json({ error: { message: "Recipe not found" } });
+    res.json(updatedRecipe);
+  } catch (err) {
+    res.status(400).json({ error: { message: err.message } });
+  }
+});
+
+router.delete("/api/recipes/:id", async (req, res) => {
+  try {
+    const deleted = await Recipe.findByIdAndDelete(req.params.id);
+    if (!deleted)
+      return res.status(404).json({ error: { message: "Recipe not found" } });
+    res.json({ message: "Recipe deleted successfully" });
+  } catch (err) {
+    res.status(400).json({ error: { message: err.message } });
+  }
+});
+
+// ---- Ingredient CRUD ----
+router.get("/api/ingredients", async (_req, res) => {
+  try {
+    const ingredients = await Ingredient.find({});
+    res.json({ items: ingredients });
+  } catch (err) {
+    res.status(500).json({ error: { message: err.message } });
+  }
+});
+
+router.post("/api/ingredients", async (req, res) => {
+  try {
+    const newIngredient = new Ingredient(req.body);
+    const saved = await newIngredient.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    res.status(400).json({ error: { message: err.message } });
+  }
+});
+
+router.get("/api/ingredients/:id", async (req, res) => {
+  try {
+    const ingredient = await Ingredient.findById(req.params.id);
+    if (!ingredient)
+      return res.status(404).json({ error: { message: "Ingredient not found" } });
+    res.json(ingredient);
+  } catch (err) {
+    res.status(400).json({ error: { message: err.message } });
+  }
+});
+
+router.put("/api/ingredients/:id", async (req, res) => {
+  try {
+    const updated = await Ingredient.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    if (!updated)
+      return res.status(404).json({ error: { message: "Ingredient not found" } });
+    res.json(updated);
+  } catch (err) {
+    res.status(400).json({ error: { message: err.message } });
+  }
+});
+
+router.delete("/api/ingredients/:id", async (req, res) => {
+  try {
+    const deleted = await Ingredient.findByIdAndDelete(req.params.id);
+    if (!deleted)
+      return res.status(404).json({ error: { message: "Ingredient not found" } });
+    res.json({ message: "Ingredient deleted successfully" });
+  } catch (err) {
+    res.status(400).json({ error: { message: err.message } });
+  }
+});
+
+// --- Attach router with /default prefix ---
+app.use("/default", router);
+
+// ---------------------------
+// MongoDB connection
+let isConnected = false;
+const MONGODB_URI = process.env.MONGODB_URI;
+
+async function connectDB() {
+  if (!MONGODB_URI) throw new Error("MONGODB_URI not set");
+  if (!isConnected) {
+    await mongoose.connect(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    isConnected = true;
+    console.log("MongoDB connected");
+  }
+}
+
+// ---------------------------
+// Serverless Lambda handler
+const serverlessHandler = serverless(app);
+
+export const handler = async (event, context) => {
+  context.callbackWaitsForEmptyEventLoop = false;
+  await connectDB();
+  return serverlessHandler(event, context);
+};

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import serverless from "serverless-http";
 
 dotenv.config();
 
@@ -176,4 +177,15 @@ async function start() {
 	}
 }
 
+// For local testing only
 start();
+
+// Database ---------------------------------------------------------------------------
+mongoose
+  .connect(MONGODB_URI)
+  .then(() => {
+    console.log("MongoDB connected");
+    app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+  })
+  .catch(err => console.error("MongoDB connection error:", err));
+  

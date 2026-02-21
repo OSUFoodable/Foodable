@@ -18,6 +18,10 @@ const ingredientSchema = new mongoose.Schema({
 		type: Date,
 		default: Date.now,
 	},
+	userId: {
+		type: String,
+		required: true,
+	},
 });
 
 const Ingredient = mongoose.model("Ingredient", ingredientSchema);
