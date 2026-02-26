@@ -2,12 +2,17 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import foodsRouter from "./routes/foods.js";
 
 dotenv.config();
+
+console.log("USDA_API_KEY loaded?", Boolean(process.env.USDA_API_KEY));
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+app.use("/api/foods", foodsRouter); // Discover Foods
 
 import Recipe from "./models/Recipe.js";
 import Ingredient from "./models/Ingredient.js";
