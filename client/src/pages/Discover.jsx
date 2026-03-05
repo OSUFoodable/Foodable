@@ -1,17 +1,21 @@
 // client/src/pages/Discover.jsx
 import { AuthContext } from "../context/AuthContext";
 import { useContext, useEffect, useState } from "react";
-import axios from "axios";
+import { apiFetch } from "../services/apiClient.js";
 
 export default function Discover() {
-  const { user } = useContext(AuthContext);
+  const { user, authReady } = useContext(AuthContext);
 
   const [query, setQuery] = useState("yogurt");
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  if (!user) return <p>Loading user information...</p>;
+  // If auth hasn't finished checking localStorage yet, show real loading
+  if (!authReady) return <p>Loading user information...</p>;
+
+  // If auth is checked and user is still null, they are logged out
+  if (!user) return <p>You are logged out. Please log in.</p>;
 
   const runSearch = async () => {
     const q = query.trim();
@@ -21,8 +25,12 @@ export default function Discover() {
     setError("");
 
     try {
-      const r = await axios.get("/api/foods/search", { params: { q } });
-      setFoods(r.data.items || []);
+      // Use apiFetch so Authorization header is included automatically
+      const data = await apiFetch(`/api/foods/search?q=${encodeURIComponent(q)}`, {
+        method: "GET",
+      });
+
+      setFoods(data?.items || []);
     } catch (e) {
       setError(e?.message || "Search failed");
       setFoods([]);

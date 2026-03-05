@@ -1,7 +1,8 @@
 // Profile.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { loadDietPrefs, saveDietPrefs } from "../services/profileService";
-import { useContext } from "react";
 import { loadSavedPosts, unsavePost } from "../services/savedPostsService";
 import { AuthContext } from "../context/AuthContext.jsx";
 
@@ -12,15 +13,28 @@ const PREFS = [
 ];
 
 export default function Profile() {
-  const { user } = useContext(AuthContext);
-  if (!user) return <p>Loading user information...</p>;
+  const { user, authReady, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-  const [dietPrefs, setDietPrefs] = useState(() => loadDietPrefs(user));
+  // Create a stable "safe user" object so hooks always run consistently
+  const safeUser = useMemo(() => user || { "cognito:username": "guest" }, [user]);
+
+  // Hooks MUST always run, even when logged out
+  const [dietPrefs, setDietPrefs] = useState(() => loadDietPrefs(safeUser));
   const [status, setStatus] = useState("");
-  const [savedPosts, setSavedPosts] = useState(() => loadSavedPosts(user));
+  const [savedPosts, setSavedPosts] = useState(() => loadSavedPosts(safeUser));
 
-  // Optional: re-load preferences if they are ever changed outside this page
+  // Re-load preferences whenever the user changes (login/logout)
   useEffect(() => {
+    setStatus("");
+
+    // If logged out, clear UI state
+    if (!user) {
+      setDietPrefs(loadDietPrefs({ "cognito:username": "guest" }));
+      setSavedPosts([]);
+      return;
+    }
+
     setDietPrefs(loadDietPrefs(user));
     setSavedPosts(loadSavedPosts(user));
   }, [user]);
@@ -31,14 +45,76 @@ export default function Profile() {
   }
 
   function handleSave() {
+    if (!user) {
+      setStatus("You must be logged in to save preferences.");
+      return;
+    }
     saveDietPrefs(user, dietPrefs);
     setStatus("Saved!");
   }
 
+  function handleLogout() {
+    // clear tokens + auth state
+    logout();
+
+    // send them somewhere safe
+    navigate("/", { replace: true });
+  }
+
+  // After hooks are declared, it's safe to conditionally render
+  if (!authReady) return <p>Loading user information...</p>;
+
+  if (!user) {
+    return (
+      <div style={{ padding: "1.5rem", maxWidth: 560 }}>
+        <h1>Profile</h1>
+        <p>You are logged out. Please log in.</p>
+        <button
+          type="button"
+          onClick={() => navigate("/", { replace: true })}
+          style={{
+            marginTop: 12,
+            padding: "0.6rem 1rem",
+            borderRadius: 10,
+            border: "1px solid #e5e7eb",
+            cursor: "pointer",
+          }}
+        >
+          Go to Login
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: "1.5rem", maxWidth: 560 }}>
-      <h2>Welcome, {user["cognito:username"]}!</h2>
-      <h1>Profile</h1>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          gap: "1rem",
+        }}
+      >
+        <div>
+          <h2>Welcome, {user["cognito:username"]}!</h2>
+          <h1>Profile</h1>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          style={{
+            padding: "0.6rem 1rem",
+            borderRadius: 10,
+            border: "1px solid #e5e7eb",
+            cursor: "pointer",
+          }}
+        >
+          Log out
+        </button>
+      </div>
+
       <p>Dietary preferences</p>
 
       <div style={{ marginTop: "1rem", display: "grid", gap: "0.75rem" }}>
