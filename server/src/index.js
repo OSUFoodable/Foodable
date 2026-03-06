@@ -1,10 +1,15 @@
 // server/src/index.js
+import path from "path";
+import { fileURLToPath } from "url";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import foodsRouter from "./routes/foods.js";
 import OpenAI from "openai";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import GroceryList from "./models/GroceryList.js";
 import Recipe from "./models/Recipe.js";
@@ -22,9 +27,11 @@ console.log("OPENAI_API_KEY loaded?", Boolean(process.env.OPENAI_API_KEY));
 
 const app = express();
 
+const isProd = process.env.NODE_ENV === "production";
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: isProd ? false : "http://localhost:5173",
     credentials: true,
   }),
 );
@@ -384,6 +391,13 @@ app.delete("/api/ingredients/:id", async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: { message: err.message } });
   }
+});
+
+// Serve React client in production
+const clientDist = path.join(__dirname, "../../client/dist");
+app.use(express.static(clientDist));
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(clientDist, "index.html"));
 });
 
 const PORT = process.env.PORT || 5050;
