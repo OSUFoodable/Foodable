@@ -11,11 +11,8 @@ export default function Discover() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // If auth hasn't finished checking localStorage yet, show real loading
-  if (!authReady) return <p>Loading user information...</p>;
-
-  // If auth is checked and user is still null, they are logged out
-  if (!user) return <p>You are logged out. Please log in.</p>;
+  if (!authReady) return <p className="app-muted" style={{ padding: 24 }}>Loading user information...</p>;
+  if (!user) return <p className="app-muted" style={{ padding: 24 }}>You are logged out. Please log in.</p>;
 
   const runSearch = async () => {
     const q = query.trim();
@@ -25,7 +22,6 @@ export default function Discover() {
     setError("");
 
     try {
-      // Use apiFetch so Authorization header is included automatically
       const data = await apiFetch(`/api/foods/search?q=${encodeURIComponent(q)}`, {
         method: "GET",
       });
@@ -58,6 +54,7 @@ export default function Discover() {
             objectFit: "cover",
             borderRadius: 10,
             background: "#1e1e1e",
+            flexShrink: 0,
           }}
           onError={(e) => {
             e.currentTarget.onerror = null;
@@ -73,14 +70,16 @@ export default function Discover() {
           width: 72,
           height: 72,
           borderRadius: 10,
-          background: "#2a2a2a",
+          background: "rgba(255,255,255,0.05)",
+          border: "1px solid rgba(255,255,255,0.08)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           fontWeight: 700,
           fontSize: "1.4rem",
-          color: "#aaa",
+          color: "rgba(255,255,255,0.4)",
           userSelect: "none",
+          flexShrink: 0,
         }}
       >
         {fallbackLetter}
@@ -99,92 +98,77 @@ export default function Discover() {
   };
 
   return (
-    <div style={{ padding: "1.5rem" }}>
-      <h2>Welcome, {user["cognito:username"]}!</h2>
-
-      <h1>Discover Foods</h1>
-      <p>Search for foods and see nutritional + affordability info. (MVP: nutrition)</p>
-
-      <div
-        style={{
-          display: "flex",
-          gap: "0.5rem",
-          alignItems: "center",
-          marginTop: "1rem",
-        }}
-      >
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search foods (e.g., yogurt, oats, protein bar)"
-          style={{
-            flex: 1,
-            padding: "0.6rem",
-            borderRadius: 8,
-            border: "1px solid #ccc",
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") runSearch();
-          }}
-        />
-        <button
-          onClick={runSearch}
-          style={{ padding: "0.6rem 1rem", borderRadius: 8, cursor: "pointer" }}
-        >
-          Search
-        </button>
-      </div>
-
-      {loading && <p style={{ marginTop: "1rem" }}>Loading results...</p>}
-      {error && <p style={{ marginTop: "1rem", color: "crimson" }}>{error}</p>}
-
-      <div style={{ marginTop: "1rem", display: "grid", gap: "0.75rem" }}>
-        {!loading && !error && foods.length === 0 && (
-          <p>No results yet. Try searching for something else.</p>
-        )}
-
-        {foods.map((food) => (
-          <div
-            key={food.id}
-            style={{
-              border: "1px solid #e5e5e5",
-              borderRadius: 12,
-              padding: "0.9rem",
-              display: "flex",
-              gap: "0.9rem",
-              alignItems: "center",
-            }}
-          >
-            {renderFoodThumb(food)}
-
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700 }}>{food.name || "Unknown"}</div>
-              <div style={{ opacity: 0.75 }}>{food.brand || "No brand listed"}</div>
-
-              <div style={{ marginTop: 6 }}>
-                <span>{food?.nutrition?.calories ?? "-"} cal</span>
-                {" • "}
-                <span>{food?.nutrition?.protein ?? "-"}g protein</span>
-                {" • "}
-                <span>{food?.nutrition?.carbs ?? "-"}g carbs</span>
-                {" • "}
-                <span>{food?.nutrition?.fat ?? "-"}g fat</span>
-                <span style={{ opacity: 0.7 }}> {nutritionLabel(food)}</span>
-              </div>
+    <div className="app-page">
+      <div className="app-shell">
+        {/* Header */}
+        <div className="app-card-hero" style={{ marginBottom: 16 }}>
+          <div className="app-flex-between" style={{ flexWrap: "wrap" }}>
+            <div>
+              <h1 className="app-title">Discover Foods</h1>
+              <p className="app-subtitle">Search for foods and see nutritional &amp; affordability info.</p>
             </div>
-
-            <button
-              onClick={() => console.log("Add to list:", food)}
-              style={{
-                padding: "0.55rem 0.9rem",
-                borderRadius: 10,
-                cursor: "pointer",
-              }}
-            >
-              Add
-            </button>
+            <span className="app-muted" style={{ fontSize: 13 }}>{user["cognito:username"]}</span>
           </div>
-        ))}
+        </div>
+
+        {/* Search bar */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search foods (e.g., yogurt, oats, protein bar)"
+            className="app-input"
+            style={{ flex: 1 }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") runSearch();
+            }}
+          />
+          <button onClick={runSearch} className="app-btn app-btn-primary">
+            Search
+          </button>
+        </div>
+
+        {loading && <p className="app-muted">Loading results…</p>}
+        {error && <p className="app-error">{error}</p>}
+
+        <div className="app-grid">
+          {!loading && !error && foods.length === 0 && (
+            <p className="app-muted">No results yet. Try searching for something.</p>
+          )}
+
+          {foods.map((food) => (
+            <div
+              key={food.id}
+              className="app-card"
+              style={{ display: "flex", gap: 14, alignItems: "center" }}
+            >
+              {renderFoodThumb(food)}
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700 }}>{food.name || "Unknown"}</div>
+                <div className="app-muted" style={{ fontSize: 13 }}>{food.brand || "No brand listed"}</div>
+
+                <div style={{ marginTop: 6, fontSize: 13 }}>
+                  <span>{food?.nutrition?.calories ?? "-"} cal</span>
+                  {" • "}
+                  <span>{food?.nutrition?.protein ?? "-"}g protein</span>
+                  {" • "}
+                  <span>{food?.nutrition?.carbs ?? "-"}g carbs</span>
+                  {" • "}
+                  <span>{food?.nutrition?.fat ?? "-"}g fat</span>
+                  <span className="app-muted"> {nutritionLabel(food)}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => console.log("Add to list:", food)}
+                className="app-btn app-btn-sm"
+              >
+                Add
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

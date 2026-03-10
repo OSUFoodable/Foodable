@@ -165,16 +165,19 @@ export default function AIChatWidget({ dietPrefs }) {
             <button
               onClick={() => setOpen(false)}
               style={{
-                border: 0,
+                border: "1px solid #ddd",
                 background: "transparent",
-                fontSize: 18,
+                fontSize: 16,
                 cursor: "pointer",
                 lineHeight: 1,
+                borderRadius: 6,
+                padding: "2px 6px",
+                color: "#555",
               }}
               aria-label="Close chat"
               title="Close"
             >
-              ×
+              ✕
             </button>
           </div>
 
@@ -287,30 +290,25 @@ export default function AIChatWidget({ dietPrefs }) {
       <button
         onClick={() => setOpen((v) => !v)}
         style={{
-          width: 56,
-          height: 56,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          padding: "10px 16px",
           borderRadius: 999,
-          border: 0,
+          border: "1px solid rgba(255,255,255,0.18)",
           cursor: "pointer",
           background: "#111",
           color: "white",
-          fontSize: 22,
-
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-
-          // makes sure emoji is visually centered
-          padding: 0,
-          lineHeight: "56px",
-          textAlign: "center",
-
-          boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+          fontSize: 14,
+          fontWeight: 600,
+          fontFamily: "inherit",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
         }}
-        aria-label="Open chat"
-        title="Foodable Assistant"
+        aria-label="Open Foodable AI Assistant"
+        title="Foodable AI Assistant"
       >
-        💬
+        <span style={{ fontSize: 18, lineHeight: 1 }}>💬</span>
+        AI Assistant
       </button>
     </div>
   );

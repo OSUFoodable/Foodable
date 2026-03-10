@@ -31,18 +31,19 @@ export default function IngredientForm({ onAdd, pending }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 8, maxWidth: 420 }}>
-      <label style={{ display: 'grid', gap: 4 }}>
+    <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 10, maxWidth: 420 }}>
+      <label className="app-label">
         Name
         <input
           aria-label="Ingredient name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g., pasta"
+          className="app-input"
         />
       </label>
 
-      <label style={{ display: 'grid', gap: 4 }}>
+      <label className="app-label">
         Quantity
         <input
           aria-label="Quantity"
@@ -51,12 +52,13 @@ export default function IngredientForm({ onAdd, pending }) {
           value={qty}
           onChange={(e) => setQty(e.target.value)}
           placeholder="e.g., 2"
+          className="app-input"
         />
       </label>
 
-      <label style={{ display: 'grid', gap: 4 }}>
+      <label className="app-label">
         Unit
-        <select aria-label="Unit" value={unit} onChange={(e) => setUnit(e.target.value)}>
+        <select aria-label="Unit" value={unit} onChange={(e) => setUnit(e.target.value)} className="app-select">
           <option value="count">count</option>
           <option value="box">box</option>
           <option value="can">can</option>
@@ -70,9 +72,9 @@ export default function IngredientForm({ onAdd, pending }) {
         </select>
       </label>
 
-      {error && <div role="alert" style={{ color: 'crimson' }}>{error}</div>}
+      {error && <div role="alert" style={{ color: '#ff8a8a', fontSize: 13 }}>{error}</div>}
 
-      <button type="submit" disabled={pending}>
+      <button type="submit" disabled={pending} className="app-btn app-btn-primary">
         {pending ? 'Adding...' : 'Add ingredient'}
       </button>
     </form>

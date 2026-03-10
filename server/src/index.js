@@ -5,12 +5,9 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-<<<<<<< HEAD
 import serverless from "serverless-http";
-=======
 import foodsRouter from "./routes/foods.js";
 import OpenAI from "openai";
->>>>>>> dev
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

@@ -373,6 +373,8 @@ button:focus-visible {
   padding: 24px;
   display: grid;
   gap: 14px;
+  background: #0b0b0d;
+  min-height: calc(100vh - 80px);
 }
 
 .ing2 * {
@@ -851,6 +853,8 @@ button:focus-visible {
   padding: 24px;
   display: grid;
   gap: 14px;
+  background: #0b0b0d;
+  min-height: calc(100vh - 80px);
 }
 
 .ing3 * {
@@ -1580,3 +1584,57 @@ button:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== Shared app utility classes ===== */
+.app-page { background: #0b0b0d; min-height: calc(100vh - 80px); color: rgba(255,255,255,0.92); }
+.app-shell { max-width: 900px; margin: 0 auto; padding: 24px 18px 48px; }
+.app-card { border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); border-radius: 14px; padding: 16px; }
+.app-card-hero { border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); border-radius: 14px; padding: 24px 20px; }
+.app-grid { display: grid; gap: 12px; }
+.app-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.app-flex-between { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+/* Buttons */
+.app-btn { padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.92); cursor: pointer; font-family: inherit; font-size: 1em; font-weight: 500; transition: background 0.15s, border-color 0.15s; white-space: nowrap; }
+.app-btn:hover { background: rgba(255,255,255,0.10); }
+.app-btn:active { transform: scale(0.99); }
+.app-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.app-btn-primary { background: rgba(99,102,241,0.28); border-color: rgba(255,255,255,0.22); }
+.app-btn-primary:hover { background: rgba(99,102,241,0.40); }
+.app-btn-danger { background: rgba(220,20,60,0.18); border-color: rgba(220,20,60,0.35); }
+.app-btn-danger:hover { background: rgba(220,20,60,0.28); }
+.app-btn-sm { padding: 8px 10px; font-size: 13px; border-radius: 10px; }
+/* Inputs */
+.app-input, .app-select, .app-textarea { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.14); background: rgba(0,0,0,0.18); color: rgba(255,255,255,0.92); outline: none; font-family: inherit; font-size: 1em; box-sizing: border-box; appearance: none; }
+.app-input:focus, .app-select:focus, .app-textarea:focus { border-color: rgba(255,255,255,0.28); }
+.app-label { font-size: 12px; opacity: 0.82; display: grid; gap: 6px; }
+/* Text helpers */
+.app-title { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 0.2px; }
+.app-subtitle { font-size: 13px; opacity: 0.75; margin: 6px 0 0; }
+.app-muted { opacity: 0.75; }
+.app-error { color: #ff8a8a; }
+.app-count { font-size: 12px; opacity: 0.7; padding: 3px 9px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); }
+/* Tag pill */
+.app-tag { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); opacity: 0.85; }
+/* Avatar */
+.app-avatar { width: 40px; height: 40px; border-radius: 999px; display: grid; place-items: center; font-weight: 800; font-size: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); flex-shrink: 0; }
+/* Feature card (home) */
+.app-feature-card { border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: inherit; transition: background 0.15s, border-color 0.15s; }
+.app-feature-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.14); color: inherit; }
+.app-feature-icon { font-size: 28px; line-height: 1; }
+.app-feature-title { font-weight: 800; font-size: 15px; }
+.app-feature-desc { font-size: 13px; opacity: 0.72; }
+/* Responsive */
+@media (max-width: 640px) {
+  .app-grid-2 { grid-template-columns: 1fr; }
+  .app-shell { padding: 16px 12px 32px; }
+}
+/* Nav */
+.app-nav-link { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px; padding: 6px 10px; border-radius: 8px; transition: color 0.15s, background 0.15s; }
+.app-nav-link:hover { color: rgba(255,255,255,1); background: rgba(255,255,255,0.08); }
+/* Table (shared) */
+.app-table-wrap { width: 100%; overflow: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.10); }
+.app-table { width: 100%; border-collapse: collapse; min-width: 360px; }
+.app-table thead th { text-align: left; font-size: 12px; opacity: 0.82; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.10); background: rgba(255,255,255,0.03); }
+.app-table tbody td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.07); vertical-align: middle; }
+.app-table tbody tr:hover { background: rgba(255,255,255,0.04); }
+.app-table tbody tr:last-child td { border-bottom: 0; }

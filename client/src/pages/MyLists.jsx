@@ -50,104 +50,77 @@ export default function MyLists() {
     };
   }, [user]);
 
-  if (!user) return <p>Loading user information...</p>;
+  if (!user) return <p className="app-muted" style={{ padding: 24 }}>Loading user information...</p>;
 
   return (
-    <div style={{ padding: "1.5rem", maxWidth: 900 }}>
-      <h2>Welcome, {username}!</h2>
+    <div className="app-page">
+      <div className="app-shell">
+        {/* Header */}
+        <div className="app-card-hero" style={{ marginBottom: 16 }}>
+          <div className="app-flex-between">
+            <div>
+              <h1 className="app-title">My Lists</h1>
+              <p className="app-subtitle">Welcome, {username}</p>
+            </div>
+            <button type="button" onClick={loadLists} className="app-btn app-btn-sm">
+              Refresh
+            </button>
+          </div>
+        </div>
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
-          gap: 12,
-        }}
-      >
-        <h1 style={{ margin: 0 }}>My Lists</h1>
+        {loading && <p className="app-muted">Loading lists…</p>}
+        {errMsg && <p className="app-error">{errMsg}</p>}
 
-        <button
-          type="button"
-          onClick={loadLists}
-          style={{
-            padding: "0.5rem 0.75rem",
-            cursor: "pointer",
-            borderRadius: 10,
-          }}
-        >
-          Refresh
-        </button>
-      </div>
+        {!loading && !errMsg && lists.length === 0 && (
+          <p className="app-muted">
+            No grocery lists saved yet. Generate one in the chatbot and click "Save".
+          </p>
+        )}
 
-      {loading && <p>Loading lists...</p>}
-      {errMsg && <p style={{ color: "crimson" }}>{errMsg}</p>}
-
-      {!loading && !errMsg && lists.length === 0 && (
-        <p style={{ opacity: 0.75 }}>
-          No grocery lists saved yet. Generate one in the chatbot and click “Save”.
-        </p>
-      )}
-
-      <div style={{ display: "grid", gap: "1rem", marginTop: "1rem" }}>
-        {lists.map((list) => (
-          <div
-            key={list._id}
-            style={{
-              border: "1px solid #e5e7eb",
-              borderRadius: 12,
-              padding: "1rem",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 12,
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 18 }}>
-                  {list.title || "Grocery List"}
+        <div className="app-grid">
+          {lists.map((list) => (
+            <div key={list._id} className="app-card">
+              <div className="app-flex-between" style={{ marginBottom: 10 }}>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 17 }}>
+                    {list.title || "Grocery List"}
+                  </div>
+                  <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>
+                    {list.createdAt ? new Date(list.createdAt).toLocaleString() : ""}
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, opacity: 0.7 }}>
-                  {list.createdAt ? new Date(list.createdAt).toLocaleString() : ""}
-                </div>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await deleteList(list._id);
+                      setLists((prev) => prev.filter((x) => x._id !== list._id));
+                    } catch (err) {
+                      alert(err.message || "Failed to delete list");
+                    }
+                  }}
+                  className="app-btn app-btn-danger app-btn-sm"
+                >
+                  Delete
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={async () => {
-                  try {
-                    await deleteList(list._id);
-                    setLists((prev) => prev.filter((x) => x._id !== list._id));
-                  } catch (err) {
-                    alert(err.message || "Failed to delete list");
-                  }
-                }}
-                style={{
-                  padding: "0.5rem 0.75rem",
-                  cursor: "pointer",
-                  borderRadius: 10,
-                }}
-              >
-                Delete
-              </button>
+              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                {(list.items || []).map((item, idx) => (
+                  <li key={idx} style={{ marginBottom: 4, fontSize: 14 }}>
+                    <span style={{ fontWeight: 600 }}>{item.name}</span>
+                    {typeof item.qty === "number" ? ` — ${item.qty}` : ""}
+                    {item.unit ? ` ${item.unit}` : ""}
+                    {item.category ? (
+                      <span className="app-muted"> ({item.category})</span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
             </div>
-
-            <ul style={{ marginTop: 12, paddingLeft: 18 }}>
-              {(list.items || []).map((item, idx) => (
-                <li key={idx} style={{ marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>{item.name}</span>
-                  {typeof item.qty === "number" ? ` — ${item.qty}` : ""}
-                  {item.unit ? ` ${item.unit}` : ""}
-                  {item.category ? (
-                    <span style={{ opacity: 0.7 }}> ({item.category})</span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

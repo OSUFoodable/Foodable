@@ -1,6 +1,6 @@
 // client/src/App.jsx
 import { Routes, Route, Link } from "react-router-dom";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import Home from "./pages/Home.jsx";
 import LoggedIn from "./pages/LoggedIn.jsx";
@@ -33,12 +33,6 @@ function App() {
     setDietPrefs(loadDietPrefs(user));
   }, [user]);
 
-  // Small helper so styles stay consistent
-  const linkStyle = useMemo(
-    () => ({ color: "white", textDecoration: "none" }),
-    []
-  );
-
   return (
     <div style={{ fontFamily: "system-ui" }}>
       {/* Top navigation bar */}
@@ -50,6 +44,7 @@ function App() {
           backgroundColor: "#111",
           color: "#fff",
           padding: "1rem 2rem",
+          borderBottom: "1px solid rgba(255,255,255,0.07)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
@@ -65,37 +60,37 @@ function App() {
             Foodable
           </Link>
 
-          <nav style={{ display: "flex", gap: "1.25rem" }}>
+          <nav style={{ display: "flex", gap: "0.25rem" }}>
             {/* Always visible */}
-            <Link to="/" style={linkStyle}>
+            <Link to="/" className="app-nav-link">
               Home
             </Link>
 
             {/* Only visible when logged in */}
             {user ? (
               <>
-                <Link to="/discover" style={linkStyle}>
+                <Link to="/discover" className="app-nav-link">
                   Discover Foods
                 </Link>
-                <Link to="/ingredients" style={linkStyle}>
+                <Link to="/ingredients" className="app-nav-link">
                   Ingredients
                 </Link>
-                <Link to="/recipes" style={linkStyle}>
+                <Link to="/recipes" className="app-nav-link">
                   Recipes
                 </Link>
-                <Link to="/lists" style={linkStyle}>
+                <Link to="/lists" className="app-nav-link">
                   My Lists
                 </Link>
-                <Link to="/community" style={linkStyle}>
+                <Link to="/community" className="app-nav-link">
                   Community
                 </Link>
-                <Link to="/profile" style={linkStyle}>
+                <Link to="/profile" className="app-nav-link">
                   Profile
                 </Link>
               </>
             ) : (
               // Only visible when logged out
-              <a href={COGNITO_LOGIN_URL} style={linkStyle}>
+              <a href={COGNITO_LOGIN_URL} className="app-nav-link">
                 Login
               </a>
             )}
@@ -104,7 +99,7 @@ function App() {
       </header>
 
       {/* Page content changes here */}
-      <main style={{ padding: "1rem" }}>
+      <main>
         <Routes>
           {/* Public */}
           <Route path="/" element={<Home />} />
