@@ -66,7 +66,6 @@ const ALLOWED_CATEGORIES = new Set([
 function toNumberOrNull(v) {
   if (typeof v === "number" && Number.isFinite(v)) return v;
 
-  // If AI sends "200g" or "1.5" as a string, try to extract a number
   if (typeof v === "string") {
     const m = v.match(/-?\d+(\.\d+)?/);
     if (m) {
@@ -80,7 +79,6 @@ function toNumberOrNull(v) {
 function normalizeUnit(v) {
   const unit = (v ?? "").toString().trim();
   if (!unit) return "count";
-  // keep it short
   return unit.slice(0, 20);
 }
 
@@ -103,22 +101,61 @@ function sanitizeGroceryList(list) {
 
       return {
         name,
-        qty: qty ?? 1, // fallback so it matches your schema (Number)
+        qty: qty ?? 1,
         unit,
         category,
       };
     })
     .filter(Boolean);
 
-  // cap size so nobody saves a crazy list
   return clean.slice(0, 60);
+}
+
+/* ---------------------------
+   Helpers for AI recipe generation
+---------------------------- */
+function normalizeString(v) {
+  return String(v || "").trim();
+}
+
+function sanitizeRecipeIngredients(input) {
+  const arr = Array.isArray(input) ? input : [];
+
+  return arr
+    .map((item) => ({
+      name: normalizeString(item?.name),
+      qty: item?.qty ?? null,
+      unit: normalizeString(item?.unit) || null,
+    }))
+    .filter((item) => item.name);
+}
+
+function buildRecipeIngredientText(ingredients) {
+  return ingredients
+    .map((item) => {
+      if (item.qty != null && item.unit) {
+        return `- ${item.name}: ${item.qty} ${item.unit}`;
+      }
+      if (item.qty != null) {
+        return `- ${item.name}: ${item.qty}`;
+      }
+      return `- ${item.name}`;
+    })
+    .join("\n");
+}
+
+function validateRecipeShape(recipe) {
+  if (!recipe || typeof recipe !== "object") return false;
+  if (!normalizeString(recipe.title)) return false;
+  if (!Array.isArray(recipe.ingredients) || recipe.ingredients.length === 0) return false;
+  if (!Array.isArray(recipe.steps) || recipe.steps.length === 0) return false;
+  return true;
 }
 
 // ---- AI Chat ----
 app.post("/api/ai/chat", async (req, res) => {
   try {
     if (!openai) {
-      // keep server alive; just return a friendly error
       return res
         .status(503)
         .json({ error: { message: "AI service not configured on server" } });
@@ -142,7 +179,6 @@ app.post("/api/ai/chat", async (req, res) => {
 
     const diet = resolveDiet(dietPrefs);
 
-    // IMPORTANT: Return structured JSON so the client can "Save to My Lists"
     const systemPrompt = `
 You are Foodable's grocery list assistant.
 
@@ -180,7 +216,6 @@ Requirements:
 
     const text = response.output_text || "";
 
-    // Try to parse JSON. If it fails, fall back to plain reply.
     try {
       const parsed = JSON.parse(text);
 
@@ -203,6 +238,110 @@ Requirements:
   } catch (err) {
     console.error("AI error:", err);
     res.status(500).json({ error: { message: "AI request failed" } });
+  }
+});
+
+// ---- AI Recipe Generation ----
+app.post("/api/recipes/generate", async (req, res) => {
+  try {
+    if (!openai) {
+      return res
+        .status(503)
+        .json({ error: { message: "AI service not configured on server" } });
+    }
+
+    const ingredients = sanitizeRecipeIngredients(req.body?.ingredients);
+
+    if (ingredients.length === 0) {
+      return res
+        .status(400)
+        .json({ error: { message: "At least one ingredient is required" } });
+    }
+
+    const ingredientText = buildRecipeIngredientText(ingredients);
+
+    const prompt = `
+You are generating a simple home cooking recipe for the Foodable app.
+
+Use the provided ingredients as the main available ingredients.
+You may assume very basic pantry support only when necessary, but strongly prefer the provided ingredients.
+
+Return STRICT JSON ONLY with this exact shape:
+{
+  "title": "Recipe title",
+  "summary": "One short summary sentence",
+  "ingredients": [
+    { "name": "ingredient name", "quantity": "amount" }
+  ],
+  "steps": [
+    "Step one",
+    "Step two"
+  ]
+}
+
+Requirements:
+- No markdown
+- No code fences
+- No extra text outside the JSON
+- Keep the recipe realistic and concise
+- Include 3 to 7 steps
+- Quantities should be human readable strings like "1 cup", "2 tbsp", "1 lb"
+
+Available ingredients:
+${ingredientText}
+`;
+
+    const response = await openai.responses.create({
+      model: "gpt-4.1-mini",
+      input: [
+        {
+          role: "system",
+          content: "You are a recipe generator that returns only valid JSON.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    const text = response.output_text || "";
+
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      console.error("Recipe JSON parse failed:", text);
+      return res
+        .status(502)
+        .json({ error: { message: "Recipe generation returned invalid JSON" } });
+    }
+
+    if (!validateRecipeShape(parsed)) {
+      console.error("Recipe response shape invalid:", parsed);
+      return res
+        .status(502)
+        .json({ error: { message: "Recipe generation returned invalid data" } });
+    }
+
+    const normalizedRecipe = {
+      title: normalizeString(parsed.title),
+      summary: normalizeString(parsed.summary),
+      ingredients: parsed.ingredients
+        .map((item) => ({
+          name: normalizeString(item?.name),
+          quantity: normalizeString(item?.quantity),
+        }))
+        .filter((item) => item.name),
+      steps: parsed.steps.map((step) => normalizeString(step)).filter(Boolean),
+    };
+
+    return res.json(normalizedRecipe);
+  } catch (err) {
+    console.error("Recipe generation error:", err);
+    return res.status(500).json({
+      error: { message: err?.message || "Recipe generation failed" },
+    });
   }
 });
 

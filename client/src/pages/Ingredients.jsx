@@ -1,13 +1,13 @@
 // src/pages/Ingredients.jsx
 
-import { useEffect, useMemo, useRef, useState, useContext} from "react";
+import { useEffect, useMemo, useRef, useState, useContext } from "react";
 import {
   listIngredients,
   addIngredient,
   updateIngredient,
   deleteIngredient,
-} from "../services/ingredientsService";
- import { AuthContext } from "../context/AuthContext";
+} from "../services/localIngredientsService";
+import { AuthContext } from "../context/AuthContext";
 
 /* -----------------------
    Utilities
@@ -59,9 +59,10 @@ function stop(e) {
 const LS = {
   packs: "foodable_ing_packs_v1",
   staples: "foodable_ing_staples_v1",
-  staplesState: "foodable_ing_staples_state_v1", // { [nameLower]: true|false }
-  favorites: "foodable_ing_favorites_v1", // array of stable keys
-  recent: "foodable_ing_recent_v1", // array of names
+  staplesState: "foodable_ing_staples_state_v1",
+  favorites: "foodable_ing_favorites_v1",
+  recent: "foodable_ing_recent_v1",
+  recipeDraft: "foodable_recipe_ingredients_draft",
 };
 
 /* -----------------------
@@ -251,7 +252,9 @@ export default function IngredientsPage() {
       setSelected((prev) => {
         const existing = new Set(next.map((x) => getRowId(x)).filter(Boolean));
         const keep = new Set();
-        for (const id of prev) if (existing.has(id)) keep.add(id);
+        for (const id of prev) {
+          if (existing.has(id)) keep.add(id);
+        }
         return keep;
       });
     } catch (e) {
@@ -499,11 +502,9 @@ export default function IngredientsPage() {
   }, [items, selected]);
 
   const recipeIngredientDraft = useMemo(() => {
-    // Combine selected items + in-stock pantry staples (always included)
     const out = [];
     const seen = new Set();
 
-    // Selected first (more important)
     for (const it of selectedItemsForRecipe) {
       const name = normalizeString(it.name);
       if (!name) continue;
@@ -513,7 +514,6 @@ export default function IngredientsPage() {
       out.push({ name, qty: it.qty, unit: it.unit });
     }
 
-    // Then staples (name-only if not already present)
     for (const s of inStockStapleNames) {
       const k = safeLower(s);
       if (seen.has(k)) continue;
@@ -527,8 +527,8 @@ export default function IngredientsPage() {
   function handleCreateRecipe() {
     if (recipeIngredientDraft.length === 0) return;
 
-    localStorage.setItem("foodable_recipe_ingredients_draft", JSON.stringify(recipeIngredientDraft));
-    window.location.assign("/recipes/new");
+    writeJson(LS.recipeDraft, recipeIngredientDraft);
+    window.location.assign("/recipes");
   }
 
   // Favorites
@@ -727,7 +727,7 @@ export default function IngredientsPage() {
             Keep your pantry current, then create recipes from what you have.
             <span className="ing3_subtle">
               {" "}
-              API <span className="ing3_mono">{import.meta.env.VITE_API_URL || "not set"}</span>
+              Local ingredient storage active
             </span>
           </div>
         </div>
@@ -785,9 +785,7 @@ export default function IngredientsPage() {
       )}
 
       <div className="ing3_layout">
-        {/* Main column */}
         <main className="ing3_main">
-          {/* Recipe Builder moved to top */}
           <section className="ing3_card ing3_recipeTop">
             <div className="ing3_recipeRow">
               <div className="ing3_recipeText">
@@ -818,7 +816,6 @@ export default function IngredientsPage() {
             </div>
           </section>
 
-          {/* Primary add card */}
           <section className="ing3_card">
             <form className="ing3_add" onSubmit={handleAdd}>
               <div className="ing3_addTop">
@@ -890,7 +887,6 @@ export default function IngredientsPage() {
             </form>
           </section>
 
-          {/* Filters */}
           {filtersOpen && (
             <section className="ing3_card ing3_filters">
               <div className="ing3_filtersGrid">
@@ -946,7 +942,6 @@ export default function IngredientsPage() {
                 </div>
               </div>
 
-              {/* Nutrition stays inside Filters */}
               <div className="ing3_divider" />
               <details className="ing3_details">
                 <summary className="ing3_detailsSummary">Nutrition</summary>
@@ -977,7 +972,6 @@ export default function IngredientsPage() {
             </section>
           )}
 
-          {/* List */}
           <section className="ing3_card ing3_listCard">
             <div className="ing3_listTop">
               <div className="ing3_meta">
@@ -1110,9 +1104,7 @@ export default function IngredientsPage() {
           </section>
         </main>
 
-        {/* Sidebar */}
         <aside className="ing3_side">
-          {/* Shortcuts moved to top */}
           <section className="ing3_sideCard">
             <div className="ing3_sideHeader">
               <button className="ing3_sideTitleBtn" type="button" onClick={() => setShortcutsOpen((v) => !v)}>
@@ -1180,7 +1172,6 @@ export default function IngredientsPage() {
             )}
           </section>
 
-          {/* Quick Packs */}
           <section className="ing3_sideCard">
             <div className="ing3_sideHeader">
               <button className="ing3_sideTitleBtn" type="button" onClick={() => setPacksOpen((v) => !v)}>
@@ -1247,7 +1238,6 @@ export default function IngredientsPage() {
             )}
           </section>
 
-          {/* Pantry Staples */}
           <section className="ing3_sideCard">
             <div className="ing3_sideHeader">
               <button className="ing3_sideTitleBtn" type="button" onClick={() => setStaplesOpen((v) => !v)}>
@@ -1304,10 +1294,8 @@ export default function IngredientsPage() {
         </aside>
       </div>
 
-      {/* Toast */}
       {toast && <div className="ing3_toast">{toast}</div>}
 
-      {/* Edit ingredient modal */}
       {editOpen && (
         <div className="ing3_modalBackdrop" role="presentation" onMouseDown={() => setEditOpen(false)}>
           <div className="ing3_modal" role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()}>
@@ -1374,7 +1362,6 @@ export default function IngredientsPage() {
         </div>
       )}
 
-      {/* Delete confirm modal */}
       {confirmOpen && (
         <div className="ing3_modalBackdrop" role="presentation" onMouseDown={() => setConfirmOpen(false)}>
           <div className="ing3_modal" role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()}>
@@ -1387,8 +1374,7 @@ export default function IngredientsPage() {
 
             <div className="ing3_modalBody">
               <p className="ing3_confirmText">
-                Are you sure you want to delete <span className="ing3_confirmStrong">{confirmItem?.name}</span>
-                This cannot be undone.
+                Are you sure you want to delete <span className="ing3_confirmStrong">{confirmItem?.name}</span>? This cannot be undone.
               </p>
             </div>
 
@@ -1404,7 +1390,6 @@ export default function IngredientsPage() {
         </div>
       )}
 
-      {/* Pack modal */}
       {packModalOpen && (
         <div className="ing3_modalBackdrop" role="presentation" onMouseDown={() => setPackModalOpen(false)}>
           <div className="ing3_modal" role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()}>
@@ -1446,7 +1431,6 @@ export default function IngredientsPage() {
         </div>
       )}
 
-      {/* Pantry Staples modal */}
       {staplesModalOpen && (
         <div className="ing3_modalBackdrop" role="presentation" onMouseDown={() => setStaplesModalOpen(false)}>
           <div className="ing3_modal" role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()}>

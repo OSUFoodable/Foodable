@@ -1,9 +1,16 @@
 // src/services/recipesService.js
 
-import { apiFetch } from './apiClient';
+import { apiFetch } from "./apiClient";
+
+export async function generateRecipe(payload) {
+  return apiFetch("/api/recipes/generate", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
 
 export async function getRecipes() {
-  return apiFetch('/api/recipes');
+  return apiFetch("/api/recipes");
 }
 
 export async function getRecipeById(id) {
@@ -11,21 +18,21 @@ export async function getRecipeById(id) {
 }
 
 export async function createRecipe(payload) {
-  return apiFetch('/api/recipes', {
-    method: 'POST',
+  return apiFetch("/api/recipes", {
+    method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
 export async function updateRecipe(id, payload) {
   return apiFetch(`/api/recipes/${id}`, {
-    method: 'PUT',
+    method: "PUT",
     body: JSON.stringify(payload),
   });
 }
 
 export async function deleteRecipe(id) {
   return apiFetch(`/api/recipes/${id}`, {
-    method: 'DELETE',
+    method: "DELETE",
   });
 }
