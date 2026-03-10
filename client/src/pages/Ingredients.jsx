@@ -1,12 +1,13 @@
 // src/pages/Ingredients.jsx
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useContext} from "react";
 import {
   listIngredients,
   addIngredient,
   updateIngredient,
   deleteIngredient,
 } from "../services/ingredientsService";
+ import { AuthContext } from "../context/AuthContext";
 
 /* -----------------------
    Utilities

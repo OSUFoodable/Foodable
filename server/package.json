@@ -19,7 +19,7 @@
     "express": "^5.1.0",
     "mongodb": "^7.0.0",
     "mongoose": "^8.19.2",
-    "openai": "^6.25.0"
+    "openai": "^6.27.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
