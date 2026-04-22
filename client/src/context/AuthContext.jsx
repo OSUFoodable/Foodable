@@ -1,9 +1,15 @@
-// AuthContext.jsx
+// client\src\context\AuthContext.jsx
 import { createContext, useState, useEffect, useRef } from "react";
 import { jwtDecode } from "jwt-decode";
 
 // Create Context Object to share User Authentication Token throughout Foodable application
 export const AuthContext = createContext();
+
+const DEFAULT_DIET_PREFS = {
+  vegetarian: false,
+  vegan: false,
+  pescatarian: false,
+};
 
 // Authentication Component Function that extracts, logs in, and logs out an authenticated user
 export function Authentication({ children }) {
@@ -11,6 +17,9 @@ export function Authentication({ children }) {
   const [user, setUser] = useState(null);
   const [idToken, setIdToken] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
+
+  // Shared diet preferences state for the current session
+  const [dietPrefs, setDietPrefs] = useState(DEFAULT_DIET_PREFS);
 
   // Tracks when we have finished the initial auth check (so pages don't hang)
   const [authReady, setAuthReady] = useState(false);
@@ -34,6 +43,7 @@ export function Authentication({ children }) {
         setIdToken(storedIdToken);
         setAccessToken(storedAccessToken);
         setUser(jwtDecode(storedIdToken));
+        setDietPrefs(DEFAULT_DIET_PREFS);
       } catch {
         // If token is invalid/expired/corrupt, clear it out
         localStorage.removeItem("id_token");
@@ -41,6 +51,7 @@ export function Authentication({ children }) {
         setIdToken(null);
         setAccessToken(null);
         setUser(null);
+        setDietPrefs(DEFAULT_DIET_PREFS);
       } finally {
         setAuthReady(true);
       }
@@ -52,8 +63,10 @@ export function Authentication({ children }) {
     const devBypass = import.meta.env.VITE_DEV_AUTH_BYPASS === "true";
     if (devBypass) {
       setUser({ "cognito:username": "dev-user" });
+      setDietPrefs(DEFAULT_DIET_PREFS);
     } else {
       setUser(null);
+      setDietPrefs(DEFAULT_DIET_PREFS);
     }
 
     setAuthReady(true);
@@ -76,6 +89,9 @@ export function Authentication({ children }) {
       setUser(null);
     }
 
+    // Reset diet prefs for the new login session
+    setDietPrefs(DEFAULT_DIET_PREFS);
+
     // We are definitely ready after a login
     setAuthReady(true);
   };
@@ -90,6 +106,7 @@ export function Authentication({ children }) {
     setIdToken(null);
     setAccessToken(null);
     setUser(null);
+    setDietPrefs(DEFAULT_DIET_PREFS);
   };
 
   // Ensure authentication data is passed down to all child components
@@ -100,6 +117,8 @@ export function Authentication({ children }) {
         idToken,
         accessToken,
         authReady,
+        dietPrefs,
+        setDietPrefs,
         login,
         logout,
       }}

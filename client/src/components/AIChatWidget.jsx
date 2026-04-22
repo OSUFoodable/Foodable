@@ -4,19 +4,15 @@ import { sendChatMessage } from "../services/aiChatService";
 import { createListFromAI } from "../services/myListsService";
 import { AuthContext } from "../context/AuthContext.jsx";
 
-function prefsToText(dietPrefs) {
-  if (!dietPrefs) return "Diet: no restrictions.";
-  const enabled = Object.entries(dietPrefs)
-    .filter(([, v]) => v)
-    .map(([k]) => k);
-
-  if (enabled.length === 0) return "Diet: no restrictions.";
-  return `Diet preferences enabled: ${enabled.join(", ")}.`;
-}
-
-export default function AIChatWidget({ dietPrefs }) {
+export default function AIChatWidget() {
   const auth = useContext(AuthContext);
   const user = auth?.user ?? null;
+  const dietPrefs =
+    auth?.dietPrefs ?? {
+      vegetarian: false,
+      vegan: false,
+      pescatarian: false,
+    };
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
@@ -29,35 +25,11 @@ export default function AIChatWidget({ dietPrefs }) {
 
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // NEW: last structured grocery list returned by server
   const [lastGroceryList, setLastGroceryList] = useState(null);
-
-  // NEW: save state
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
 
   const endRef = useRef(null);
-
-  // Inject prefs as context (client-side) when they change
-  useEffect(() => {
-    const prefMsg = {
-      role: "system",
-      content: `User profile context: ${prefsToText(dietPrefs)}`,
-    };
-
-    setMessages((prev) => {
-      const withoutOld = prev.filter(
-        (m) =>
-          !(
-            m.role === "system" &&
-            typeof m.content === "string" &&
-            m.content.startsWith("User profile context:")
-          ),
-      );
-      return [prefMsg, ...withoutOld];
-    });
-  }, [dietPrefs]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -76,7 +48,6 @@ export default function AIChatWidget({ dietPrefs }) {
     setLoading(true);
 
     try {
-      // server returns: { reply, groceryList }
       const data = await sendChatMessage(next, dietPrefs);
 
       const replyText =
@@ -110,6 +81,7 @@ export default function AIChatWidget({ dietPrefs }) {
       setSaveStatus("Please log in to save.");
       return;
     }
+
     if (!Array.isArray(lastGroceryList) || lastGroceryList.length === 0) {
       setSaveStatus("No grocery list to save yet.");
       return;
@@ -119,9 +91,7 @@ export default function AIChatWidget({ dietPrefs }) {
       setSaving(true);
       setSaveStatus("");
 
-      // simple title
       const title = "AI Grocery List";
-
       await createListFromAI(user, title, lastGroceryList);
 
       setSaveStatus("Saved to My Lists!");
@@ -134,7 +104,6 @@ export default function AIChatWidget({ dietPrefs }) {
 
   return (
     <div style={{ position: "fixed", right: 18, bottom: 18, zIndex: 9999 }}>
-      {/* Chat panel */}
       {open && (
         <div
           style={{
@@ -150,7 +119,6 @@ export default function AIChatWidget({ dietPrefs }) {
             marginBottom: 10,
           }}
         >
-          {/* Header */}
           <div
             style={{
               padding: "10px 12px",
@@ -181,39 +149,35 @@ export default function AIChatWidget({ dietPrefs }) {
             </button>
           </div>
 
-          {/* Messages */}
           <div style={{ padding: 10, flex: 1, overflowY: "auto" }}>
-            {messages
-              .filter((m) => m.role !== "system") // don’t show system messages to user
-              .map((m, i) => (
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                style={{
+                  marginBottom: 10,
+                  display: "flex",
+                  justifyContent:
+                    m.role === "user" ? "flex-end" : "flex-start",
+                }}
+              >
                 <div
-                  key={i}
                   style={{
-                    marginBottom: 10,
-                    display: "flex",
-                    justifyContent:
-                      m.role === "user" ? "flex-end" : "flex-start",
+                    maxWidth: "85%",
+                    padding: "8px 10px",
+                    borderRadius: 12,
+                    background: m.role === "user" ? "#f0f0f0" : "#fff7e6",
+                    border: "1px solid #e5e7eb",
+                    whiteSpace: "pre-wrap",
+                    fontSize: 14,
+                    color: "#111",
+                    opacity: 1,
                   }}
                 >
-                  <div
-                    style={{
-                      maxWidth: "85%",
-                      padding: "8px 10px",
-                      borderRadius: 12,
-                      background: m.role === "user" ? "#f0f0f0" : "#fff7e6",
-                      border: "1px solid #e5e7eb",
-                      whiteSpace: "pre-wrap",
-                      fontSize: 14,
-                      color: "#111",
-                      opacity: 1,
-                    }}
-                  >
-                    {m.content}
-                  </div>
+                  {m.content}
                 </div>
-              ))}
+              </div>
+            ))}
 
-            {/* NEW: Save button appears after a successful structured list */}
             {Array.isArray(lastGroceryList) && lastGroceryList.length > 0 && (
               <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
                 <button
@@ -234,7 +198,13 @@ export default function AIChatWidget({ dietPrefs }) {
                 </button>
 
                 {saveStatus && (
-                  <div style={{ alignSelf: "center", fontSize: 12, opacity: 0.8 }}>
+                  <div
+                    style={{
+                      alignSelf: "center",
+                      fontSize: 12,
+                      opacity: 0.8,
+                    }}
+                  >
                     {saveStatus}
                   </div>
                 )}
@@ -244,7 +214,6 @@ export default function AIChatWidget({ dietPrefs }) {
             <div ref={endRef} />
           </div>
 
-          {/* Input */}
           <form
             onSubmit={onSend}
             style={{
@@ -286,7 +255,6 @@ export default function AIChatWidget({ dietPrefs }) {
         </div>
       )}
 
-      {/* Floating button */}
       <button
         onClick={() => setOpen((v) => !v)}
         style={{

@@ -39,7 +39,7 @@ app.use(
 
 app.use(express.json());
 
-app.use("/api/foods", foodsRouter); // Discover Foods
+app.use("/api/foods", foodsRouter);
 
 // simple health routes
 app.get("/api/health", (_req, res) => {
@@ -66,7 +66,6 @@ const ALLOWED_CATEGORIES = new Set([
 function toNumberOrNull(v) {
   if (typeof v === "number" && Number.isFinite(v)) return v;
 
-  // If AI sends "200g" or "1.5" as a string, try to extract a number
   if (typeof v === "string") {
     const m = v.match(/-?\d+(\.\d+)?/);
     if (m) {
@@ -80,7 +79,6 @@ function toNumberOrNull(v) {
 function normalizeUnit(v) {
   const unit = (v ?? "").toString().trim();
   if (!unit) return "count";
-  // keep it short
   return unit.slice(0, 20);
 }
 
@@ -103,14 +101,13 @@ function sanitizeGroceryList(list) {
 
       return {
         name,
-        qty: qty ?? 1, // fallback so it matches your schema (Number)
+        qty: qty ?? 1,
         unit,
         category,
       };
     })
     .filter(Boolean);
 
-  // cap size so nobody saves a crazy list
   return clean.slice(0, 60);
 }
 
@@ -118,7 +115,6 @@ function sanitizeGroceryList(list) {
 app.post("/api/ai/chat", async (req, res) => {
   try {
     if (!openai) {
-      // keep server alive; just return a friendly error
       return res
         .status(503)
         .json({ error: { message: "AI service not configured on server" } });
@@ -142,17 +138,23 @@ app.post("/api/ai/chat", async (req, res) => {
 
     const diet = resolveDiet(dietPrefs);
 
-    // IMPORTANT: Return structured JSON so the client can "Save to My Lists"
     const systemPrompt = `
 You are Foodable's grocery list assistant.
 
 Diet setting from the user's profile: ${diet}
 
-Rules:
-- vegan: no meat, fish, eggs, dairy, honey
-- vegetarian: no meat or fish (dairy/eggs ok)
-- pescatarian: seafood ok, no poultry or red meat
-- no restrictions: anything ok
+CRITICAL RULE:
+You MUST strictly follow the user's diet. Never include foods that violate it.
+
+- If vegetarian: NEVER include meat or fish.
+- If vegan: NEVER include meat, fish, dairy, eggs, or honey.
+- If pescatarian: NEVER include poultry or red meat.
+- If no restrictions: anything is allowed.
+
+If a user asks for something that conflicts with their diet (like "high protein"),
+you must adapt using foods that still respect the diet.
+
+Do NOT suggest foods outside the diet under any circumstances.
 
 If the user asks for low-calorie, prioritize foods that are typically low calorie.
 If the user asks for high-protein, prioritize foods that are typically high in protein.
@@ -180,7 +182,6 @@ Requirements:
 
     const text = response.output_text || "";
 
-    // Try to parse JSON. If it fails, fall back to plain reply.
     try {
       const parsed = JSON.parse(text);
 
@@ -422,16 +423,4 @@ async function start() {
   }
 }
 
-// For local testing only
-//start();
-
-// Database ---------------------------------------------------------------------------
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => {
-    console.log("MongoDB connected");
-    app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
-  })
-  .catch(err => console.error("MongoDB connection error:", err));
-  
 start();

@@ -1,4 +1,4 @@
-// Profile.jsx
+// client\src\pages\Profile.jsx
 import { useEffect, useMemo, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -13,25 +13,20 @@ const PREFS = [
 ];
 
 export default function Profile() {
-  const { user, authReady, logout } = useContext(AuthContext);
+  const {
+    user,
+    authReady,
+    logout,
+    dietPrefs,
+    setDietPrefs,
+  } = useContext(AuthContext);
+
   const navigate = useNavigate();
 
-  const safeUser = useMemo(() => user || { "cognito:username": "guest" }, [user]);
-
-  const [dietPrefs, setDietPrefs] = useState(() => loadDietPrefs(safeUser));
   const [status, setStatus] = useState("");
-  const [savedPosts, setSavedPosts] = useState(() => loadSavedPosts(safeUser));
-
-  useEffect(() => {
-    setStatus("");
-    if (!user) {
-      setDietPrefs(loadDietPrefs({ "cognito:username": "guest" }));
-      setSavedPosts([]);
-      return;
-    }
-    setDietPrefs(loadDietPrefs(user));
-    setSavedPosts(loadSavedPosts(user));
-  }, [user]);
+  const [savedPosts, setSavedPosts] = useState(() =>
+    user ? loadSavedPosts(user) : [],
+  );
 
   function togglePref(key) {
     setDietPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -43,7 +38,9 @@ export default function Profile() {
       setStatus("You must be logged in to save preferences.");
       return;
     }
-    saveDietPrefs(user, dietPrefs);
+
+    // Preferences already live in shared context state.
+    // This just confirms the current session state was updated.
     setStatus("Saved!");
   }
 
@@ -52,13 +49,21 @@ export default function Profile() {
     navigate("/", { replace: true });
   }
 
-  if (!authReady) return <p className="app-muted" style={{ padding: 24 }}>Loading user information...</p>;
+  if (!authReady) {
+    return (
+      <p className="app-muted" style={{ padding: 24 }}>
+        Loading user information...
+      </p>
+    );
+  }
 
   if (!user) {
     return (
       <div className="app-page">
         <div className="app-shell" style={{ maxWidth: 560 }}>
-          <h1 className="app-title" style={{ marginBottom: 12 }}>Profile</h1>
+          <h1 className="app-title" style={{ marginBottom: 12 }}>
+            Profile
+          </h1>
           <p className="app-muted">You are logged out. Please log in.</p>
           <button
             type="button"
@@ -78,11 +83,13 @@ export default function Profile() {
   return (
     <div className="app-page">
       <div className="app-shell" style={{ maxWidth: 600 }}>
-        {/* Header */}
         <div className="app-card-hero" style={{ marginBottom: 16 }}>
           <div className="app-flex-between">
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div className="app-avatar" style={{ width: 48, height: 48, fontSize: 20 }}>
+              <div
+                className="app-avatar"
+                style={{ width: 48, height: 48, fontSize: 20 }}
+              >
                 {initial}
               </div>
               <div>
@@ -101,9 +108,10 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Dietary preferences */}
         <div className="app-card" style={{ marginBottom: 16 }}>
-          <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 700 }}>Dietary preferences</h2>
+          <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 700 }}>
+            Dietary preferences
+          </h2>
 
           <div className="app-grid" style={{ marginBottom: 12 }}>
             {PREFS.map((p) => {
@@ -113,7 +121,11 @@ export default function Profile() {
                 <div
                   key={p.key}
                   className="app-card"
-                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
                 >
                   <div>
                     <div style={{ fontWeight: 600 }}>{p.label}</div>
@@ -138,16 +150,21 @@ export default function Profile() {
             <button onClick={handleSave} className="app-btn app-btn-primary">
               Save
             </button>
-            {status && <span style={{ fontSize: 13, opacity: 0.85 }}>{status}</span>}
+            {status && (
+              <span style={{ fontSize: 13, opacity: 0.85 }}>{status}</span>
+            )}
           </div>
         </div>
 
-        {/* Saved posts */}
         <div className="app-card">
-          <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 700 }}>Saved Posts</h2>
+          <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 700 }}>
+            Saved Posts
+          </h2>
 
           {savedPosts.length === 0 ? (
-            <p className="app-muted" style={{ margin: 0 }}>No saved posts yet.</p>
+            <p className="app-muted" style={{ margin: 0 }}>
+              No saved posts yet.
+            </p>
           ) : (
             <div className="app-grid">
               {savedPosts.map((post) => {
@@ -175,7 +192,9 @@ export default function Profile() {
                     </div>
 
                     {post.body && (
-                      <p style={{ marginTop: 10, fontSize: 14, opacity: 0.9 }}>{post.body}</p>
+                      <p style={{ marginTop: 10, fontSize: 14, opacity: 0.9 }}>
+                        {post.body}
+                      </p>
                     )}
                   </article>
                 );
