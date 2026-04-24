@@ -1,13 +1,13 @@
 // src/pages/Ingredients.jsx
 
-import { useEffect, useMemo, useRef, useState, useContext} from "react";
+import { useEffect, useMemo, useRef, useState, useContext } from "react";
 import {
   listIngredients,
   addIngredient,
   updateIngredient,
   deleteIngredient,
 } from "../services/ingredientsService";
- import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../context/AuthContext";
 
 /* -----------------------
    Utilities
@@ -123,6 +123,8 @@ function makeId() {
 ------------------------ */
 export default function IngredientsPage() {
   const { user } = useContext(AuthContext);
+  const userId = user?.sub || user?.["cognito:username"] || user?.email;
+
   if (!user) return <p>Loading user information...</p>;
 
   const [items, setItems] = useState([]);
@@ -364,6 +366,7 @@ export default function IngredientsPage() {
       name,
       qty: addDetailsOpen ? parseQty(addQty) : undefined,
       unit: addDetailsOpen ? normalizeString(addUnit) || undefined : undefined,
+      userId,
     };
 
     try {
@@ -457,6 +460,22 @@ export default function IngredientsPage() {
     }
   }
 
+  async function deleteSelected() {
+    if (selected.size === 0) return;
+
+    try {
+      for (const id of selected) {
+        await deleteIngredient(id);
+      }
+
+      clearSelection();
+      await refresh();
+      showToast("Selected ingredients deleted");
+    } catch (e) {
+      setError(e?.message || "Failed to delete selected ingredients");
+    }
+  }
+
   async function seedDemo() {
     setMoreOpen(false);
     setError("");
@@ -469,7 +488,7 @@ export default function IngredientsPage() {
 
     try {
       for (const ing of demo) {
-        await addIngredient(ing);
+        await addIngredient({ ...ing, userId });
         addToRecent(ing.name);
       }
       await refresh();
@@ -632,7 +651,7 @@ export default function IngredientsPage() {
 
     try {
       for (const nm of toAdd) {
-        await addIngredient({ name: nm });
+        await addIngredient({ name: nm, userId });
         addToRecent(nm);
       }
       await refresh();
@@ -688,7 +707,7 @@ export default function IngredientsPage() {
 
     try {
       for (const nm of toAdd) {
-        await addIngredient({ name: nm });
+        await addIngredient({ name: nm, userId });
         addToRecent(nm);
       }
       await refresh();
@@ -704,7 +723,7 @@ export default function IngredientsPage() {
     if (!cleaned) return;
 
     try {
-      await addIngredient({ name: cleaned });
+      await addIngredient({ name: cleaned, userId });
       addToRecent(cleaned);
       await refresh();
       showToast("Ingredient added");
@@ -1001,6 +1020,14 @@ export default function IngredientsPage() {
                   disabled={selectedCount === 0}
                 >
                   Clear
+                </button>
+                <button
+                  className="ing3_btn ing3_btnDanger"
+                  type="button"
+                  onClick={deleteSelected}
+                  disabled={selectedCount === 0}
+                >
+                  Delete selected
                 </button>
               </div>
             </div>
