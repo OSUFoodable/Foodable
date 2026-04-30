@@ -11,6 +11,7 @@ export async function fetchLists(user) {
   return data.items || [];
 }
 
+// Create List from AI Chat Bot
 export async function createListFromAI(user, title, items) {
   const owner = getOwner(user);
 
@@ -26,6 +27,22 @@ export async function createListFromAI(user, title, items) {
   });
 }
 
+// Delete List
 export async function deleteList(id) {
   return apiFetch(`/api/lists/${id}`, { method: "DELETE" });
+}
+
+// Create List From Ingredients Page
+export async function createListFromIngredients(user, title, items) {
+  const owner = getOwner(user);
+
+  return apiFetch("/api/lists", {
+    method: "POST",
+    body: JSON.stringify({
+      owner,
+      title,
+      items,
+      source: "ingredients",
+    }),
+  });
 }
