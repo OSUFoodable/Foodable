@@ -123,7 +123,6 @@ function makeId() {
 ------------------------ */
 export default function IngredientsPage() {
   const { user } = useContext(AuthContext);
-  const userId = user?.sub || user?.["cognito:username"] || user?.email;
 
   if (!user) return <p>Loading user information...</p>;
 
@@ -366,7 +365,6 @@ export default function IngredientsPage() {
       name,
       qty: addDetailsOpen ? parseQty(addQty) : undefined,
       unit: addDetailsOpen ? normalizeString(addUnit) || undefined : undefined,
-      userId,
     };
 
     try {
@@ -488,7 +486,7 @@ export default function IngredientsPage() {
 
     try {
       for (const ing of demo) {
-        await addIngredient({ ...ing, userId });
+        await addIngredient({ ...ing });
         addToRecent(ing.name);
       }
       await refresh();
@@ -651,7 +649,7 @@ export default function IngredientsPage() {
 
     try {
       for (const nm of toAdd) {
-        await addIngredient({ name: nm, userId });
+        await addIngredient({ name: nm });
         addToRecent(nm);
       }
       await refresh();
@@ -707,7 +705,7 @@ export default function IngredientsPage() {
 
     try {
       for (const nm of toAdd) {
-        await addIngredient({ name: nm, userId });
+        await addIngredient({ name: nm });
         addToRecent(nm);
       }
       await refresh();
@@ -723,7 +721,7 @@ export default function IngredientsPage() {
     if (!cleaned) return;
 
     try {
-      await addIngredient({ name: cleaned, userId });
+      await addIngredient({ name: cleaned });
       addToRecent(cleaned);
       await refresh();
       showToast("Ingredient added");

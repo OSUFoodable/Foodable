@@ -15,10 +15,7 @@ import AIChatWidget from "./components/AIChatWidget.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { AuthContext } from "./context/AuthContext.jsx";
 import { loadDietPrefs } from "./services/profileService.js";
-
-// Put Hosted UI login link here (same one used in Home.jsx)
-const COGNITO_LOGIN_URL =
-  "https://us-east-20wnkbkk1l.auth.us-east-2.amazoncognito.com/login?client_id=1ersrvdta79prnn3uip16snfck&response_type=token&scope=email+openid+phone&redirect_uri=http%3A%2F%2Flocalhost%3A5173%2Floggedin";
+import { startLogin } from "./config/cognito.js";
 
 function App() {
   const { user } = useContext(AuthContext);
@@ -90,9 +87,13 @@ function App() {
               </>
             ) : (
               // Only visible when logged out
-              <a href={COGNITO_LOGIN_URL} className="app-nav-link">
+              <button
+                type="button"
+                onClick={startLogin}
+                className="app-nav-link"
+              >
                 Login
-              </a>
+              </button>
             )}
           </nav>
         </div>

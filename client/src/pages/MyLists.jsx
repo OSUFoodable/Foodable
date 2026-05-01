@@ -2,12 +2,12 @@
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
 import { fetchLists, deleteList } from "../services/myListsService.js";
+import { getDisplayName } from "../utils/authHelpers";
 
 export default function MyLists() {
   const { user } = useContext(AuthContext);
 
-  const username =
-    user?.["cognito:username"] || user?.username || user?.email || "guest";
+  const username = getDisplayName(user);
 
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +18,7 @@ export default function MyLists() {
     try {
       setLoading(true);
       setErrMsg("");
-      const data = await fetchLists(user);
+      const data = await fetchLists();
       setLists(data);
     } catch (err) {
       setErrMsg(err.message || "Failed to load lists");
@@ -36,7 +36,7 @@ export default function MyLists() {
       try {
         setLoading(true);
         setErrMsg("");
-        const data = await fetchLists(user);
+        const data = await fetchLists();
         if (!cancelled) setLists(data);
       } catch (err) {
         if (!cancelled) setErrMsg(err.message || "Failed to load lists");

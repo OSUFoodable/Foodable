@@ -26,8 +26,8 @@ const groceryItemSchema = new mongoose.Schema(
 
 const groceryListSchema = new mongoose.Schema(
   {
-    owner: {
-      type: String, // cognito username
+    userId: {
+      type: String, // Cognito sub
       required: true,
       index: true,
     },

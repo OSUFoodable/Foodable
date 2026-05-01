@@ -2,6 +2,7 @@
 import { useState, useContext } from 'react';
 import { getRecipes } from '../services/recipesService';
 import { AuthContext } from '../context/AuthContext.jsx';
+import { getDisplayName } from '../utils/authHelpers';
 
 export default function Recipes() {
   const { user } = useContext(AuthContext);
@@ -34,7 +35,7 @@ export default function Recipes() {
               <h1 className="app-title">Recipes</h1>
               <p className="app-subtitle">Generate a recipe based on your ingredients.</p>
             </div>
-            <span className="app-muted" style={{ fontSize: 13 }}>{user["cognito:username"]}</span>
+            <span className="app-muted" style={{ fontSize: 13 }}>{getDisplayName(user)}</span>
           </div>
         </div>
 

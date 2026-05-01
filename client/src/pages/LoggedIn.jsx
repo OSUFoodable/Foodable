@@ -2,26 +2,16 @@ import React from "react";
 import { useEffect, useState, useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext.jsx";
-
-// Helper to parse tokens returned in the URL hash from Cognito Hosted UI
-function parseHashTokens(hash) {
-  // hash looks like: "#id_token=...&access_token=...&expires_in=3600&token_type=Bearer"
-  const raw = (hash || "").startsWith("#") ? hash.slice(1) : hash;
-  const params = new URLSearchParams(raw);
-
-  return {
-    idToken: params.get("id_token"),
-    accessToken: params.get("access_token"),
-    error: params.get("error"),
-    errorDescription: params.get("error_description"),
-  };
-}
+import {
+  exchangeCodeForTokens,
+  consumeStoredState,
+} from "../config/cognito.js";
+import { getDisplayName } from "../utils/authHelpers";
 
 function LoggedIn() {
   const { user, login, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // Local message so we can show what's happening while we process the redirect
   const [statusMsg, setStatusMsg] = useState("Loading user information...");
 
   // Guard so we only process the redirect once (prevents infinite update loops)
@@ -31,47 +21,54 @@ function LoggedIn() {
     if (didProcess.current) return;
     didProcess.current = true;
 
-    // Read tokens from the redirect URL (Cognito puts them in the hash)
-    const { idToken, accessToken, error, errorDescription } = parseHashTokens(
-      window.location.hash
-    );
+    // Cognito's authorization-code flow returns ?code= and ?state= as query
+    // params (not in the hash like the legacy implicit flow).
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const returnedState = params.get("state");
+    const error = params.get("error");
+    const errorDescription = params.get("error_description");
 
-    // If Cognito returned an error, show it
     if (error) {
       setStatusMsg(`Login failed: ${errorDescription || error}`);
       return;
     }
 
-    // If we received tokens, store them through AuthContext
-    if (idToken && accessToken) {
-      try {
-        login(idToken, accessToken);
-
-        // Clear tokens from the URL so they don't remain in browser history
-        window.history.replaceState({}, document.title, "/loggedin");
-
-        setStatusMsg("Logged in!");
-
-        // Send them somewhere useful after login
-        navigate("/", { replace: true });
-        return;
-      } catch (e) {
-        setStatusMsg(`Login failed: ${e?.message || "Could not decode token"}`);
-        return;
-      }
+    if (!code) {
+      setStatusMsg("Logged in! (No new code in URL)");
+      return;
     }
 
-    // If no tokens are present, user might have refreshed /loggedin
-    setStatusMsg("Logged in! (No new token in URL)");
+    // Validate the state parameter for CSRF protection.
+    const expectedState = consumeStoredState();
+    if (expectedState && returnedState !== expectedState) {
+      setStatusMsg("Login failed: state mismatch (possible CSRF).");
+      return;
+    }
+
+    (async () => {
+      try {
+        const tokens = await exchangeCodeForTokens(code);
+        login(tokens.id_token, tokens.access_token, tokens.refresh_token);
+
+        // Strip the code/state from the URL so they don't persist in history.
+        window.history.replaceState({}, document.title, "/loggedin");
+        setStatusMsg("Logged in!");
+        navigate("/", { replace: true });
+      } catch (e) {
+        setStatusMsg(
+          `Login failed: ${e?.message || "Token exchange failed"}`
+        );
+      }
+    })();
   }, [login, navigate]);
 
-  // If we still don't have a user, show status message (instead of hanging forever)
   if (!user) return <p>{statusMsg}</p>;
 
   return (
     <div style={{ fontFamily: "system-ui", padding: 24 }}>
       <p>You are logged in!!!</p>
-      <h2>Welcome, {user["cognito:username"]}!</h2>
+      <h2>Welcome, {getDisplayName(user)}!</h2>
       <p>Email: {user.email}</p>
 
       <button

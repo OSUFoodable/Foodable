@@ -18,6 +18,7 @@ const recipeSchema = new mongoose.Schema({
 	userId: {
 		type: String,
 		required: true,
+		index: true,
 	},
 });
 

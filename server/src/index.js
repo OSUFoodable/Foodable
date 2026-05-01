@@ -1,9 +1,12 @@
 // server/src/index.js
+// Load .env before any other module reads process.env (cognitoVerifier needs it
+// at module-init time, and ES module imports are hoisted above top-level code).
+import "dotenv/config";
+
 import path from "path";
 import { fileURLToPath } from "url";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 import serverless from "serverless-http";
 import foodsRouter from "./routes/foods.js";
@@ -15,8 +18,9 @@ const __dirname = path.dirname(__filename);
 import GroceryList from "./models/GroceryList.js";
 import Recipe from "./models/Recipe.js";
 import Ingredient from "./models/Ingredient.js";
-
-dotenv.config();
+import User from "./models/User.js";
+import authRouter from "./routes/auth.js";
+import requireAuth from "./middleware/requireAuth.js";
 
 // IMPORTANT: don't crash if key missing
 const openai = process.env.OPENAI_API_KEY
@@ -40,6 +44,7 @@ app.use(
 app.use(express.json());
 
 app.use("/api/foods", foodsRouter);
+app.use("/api/auth", authRouter);
 
 // simple health routes
 app.get("/api/health", (_req, res) => {
@@ -112,7 +117,7 @@ function sanitizeGroceryList(list) {
 }
 
 // ---- AI Chat ----
-app.post("/api/ai/chat", async (req, res) => {
+app.post("/api/ai/chat", requireAuth, async (req, res) => {
   try {
     if (!openai) {
       return res
@@ -120,7 +125,7 @@ app.post("/api/ai/chat", async (req, res) => {
         .json({ error: { message: "AI service not configured on server" } });
     }
 
-    const { messages, dietPrefs } = req.body;
+    const { messages, dietPrefs: bodyDietPrefs } = req.body;
 
     if (!Array.isArray(messages)) {
       return res
@@ -136,7 +141,9 @@ app.post("/api/ai/chat", async (req, res) => {
       return "no restrictions (omnivore)";
     }
 
-    const diet = resolveDiet(dietPrefs);
+    // Prefer the user's persisted dietPrefs; fall back to whatever the client sent.
+    const userDoc = await User.findById(req.user.sub).lean();
+    const diet = resolveDiet(userDoc?.dietPrefs || bodyDietPrefs);
 
     const systemPrompt = `
 You are Foodable's grocery list assistant.
@@ -209,30 +216,22 @@ Requirements:
 
 // ---- Grocery Lists CRUD ----
 
-// Get lists for a user: /api/lists?owner=dev-user
-app.get("/api/lists", async (req, res) => {
+// Get lists for the authenticated user.
+app.get("/api/lists", requireAuth, async (req, res) => {
   try {
-    const owner = (req.query.owner || "").toString().trim();
-    if (!owner) {
-      return res.status(400).json({ error: { message: "owner is required" } });
-    }
-
-    const lists = await GroceryList.find({ owner }).sort({ createdAt: -1 });
+    const lists = await GroceryList.find({ userId: req.user.sub }).sort({
+      createdAt: -1,
+    });
     res.json({ items: lists });
   } catch (err) {
     res.status(500).json({ error: { message: err.message } });
   }
 });
 
-// Create a list
-app.post("/api/lists", async (req, res) => {
+// Create a list owned by the authenticated user.
+app.post("/api/lists", requireAuth, async (req, res) => {
   try {
-    const { owner, title, items } = req.body;
-
-    const ownerStr = (owner || "").toString().trim();
-    if (!ownerStr) {
-      return res.status(400).json({ error: { message: "owner is required" } });
-    }
+    const { title, items } = req.body;
 
     const cleanItems = sanitizeGroceryList(items);
     if (cleanItems.length === 0) {
@@ -242,7 +241,7 @@ app.post("/api/lists", async (req, res) => {
     }
 
     const list = new GroceryList({
-      owner: ownerStr,
+      userId: req.user.sub,
       title: (title || "").toString().trim() || "Grocery List",
       items: cleanItems,
     });
@@ -254,10 +253,13 @@ app.post("/api/lists", async (req, res) => {
   }
 });
 
-// Delete a list
-app.delete("/api/lists/:id", async (req, res) => {
+// Delete a list (only if it belongs to the authenticated user).
+app.delete("/api/lists/:id", requireAuth, async (req, res) => {
   try {
-    const deleted = await GroceryList.findByIdAndDelete(req.params.id);
+    const deleted = await GroceryList.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user.sub,
+    });
     if (!deleted) {
       return res.status(404).json({ error: { message: "List not found" } });
     }
@@ -269,18 +271,19 @@ app.delete("/api/lists/:id", async (req, res) => {
 
 // ---- Recipe CRUD ----
 
-app.get("/api/recipes", async (_req, res) => {
+app.get("/api/recipes", requireAuth, async (req, res) => {
   try {
-    const recipes = await Recipe.find({});
+    const recipes = await Recipe.find({ userId: req.user.sub });
     res.json(recipes);
   } catch (err) {
     res.status(500).json({ error: { message: err.message } });
   }
 });
 
-app.post("/api/recipes", async (req, res) => {
+app.post("/api/recipes", requireAuth, async (req, res) => {
   try {
-    const newRecipe = new Recipe(req.body);
+    const { userId: _ignoreClientUserId, ...rest } = req.body || {};
+    const newRecipe = new Recipe({ ...rest, userId: req.user.sub });
     const savedRecipe = await newRecipe.save();
     res.status(201).json(savedRecipe);
   } catch (err) {
@@ -288,9 +291,12 @@ app.post("/api/recipes", async (req, res) => {
   }
 });
 
-app.get("/api/recipes/:id", async (req, res) => {
+app.get("/api/recipes/:id", requireAuth, async (req, res) => {
   try {
-    const recipe = await Recipe.findById(req.params.id);
+    const recipe = await Recipe.findOne({
+      _id: req.params.id,
+      userId: req.user.sub,
+    });
     if (!recipe)
       return res.status(404).json({ error: { message: "Recipe not found" } });
     res.json(recipe);
@@ -299,11 +305,12 @@ app.get("/api/recipes/:id", async (req, res) => {
   }
 });
 
-app.put("/api/recipes/:id", async (req, res) => {
+app.put("/api/recipes/:id", requireAuth, async (req, res) => {
   try {
-    const updatedRecipe = await Recipe.findByIdAndUpdate(
-      req.params.id,
-      req.body,
+    const { userId: _ignoreClientUserId, ...rest } = req.body || {};
+    const updatedRecipe = await Recipe.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.sub },
+      rest,
       {
         new: true,
         runValidators: true,
@@ -317,9 +324,12 @@ app.put("/api/recipes/:id", async (req, res) => {
   }
 });
 
-app.delete("/api/recipes/:id", async (req, res) => {
+app.delete("/api/recipes/:id", requireAuth, async (req, res) => {
   try {
-    const deleted = await Recipe.findByIdAndDelete(req.params.id);
+    const deleted = await Recipe.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user.sub,
+    });
     if (!deleted)
       return res.status(404).json({ error: { message: "Recipe not found" } });
     res.json({ message: "Recipe deleted successfully" });
@@ -330,18 +340,19 @@ app.delete("/api/recipes/:id", async (req, res) => {
 
 // ---- Ingredient CRUD ----
 
-app.get("/api/ingredients", async (_req, res) => {
+app.get("/api/ingredients", requireAuth, async (req, res) => {
   try {
-    const ingredients = await Ingredient.find({});
+    const ingredients = await Ingredient.find({ userId: req.user.sub });
     res.json({ items: ingredients });
   } catch (err) {
     res.status(500).json({ error: { message: err.message } });
   }
 });
 
-app.post("/api/ingredients", async (req, res) => {
+app.post("/api/ingredients", requireAuth, async (req, res) => {
   try {
-    const newIngredient = new Ingredient(req.body);
+    const { userId: _ignoreClientUserId, ...rest } = req.body || {};
+    const newIngredient = new Ingredient({ ...rest, userId: req.user.sub });
     const saved = await newIngredient.save();
     res.status(201).json(saved);
   } catch (err) {
@@ -349,9 +360,12 @@ app.post("/api/ingredients", async (req, res) => {
   }
 });
 
-app.get("/api/ingredients/:id", async (req, res) => {
+app.get("/api/ingredients/:id", requireAuth, async (req, res) => {
   try {
-    const ingredient = await Ingredient.findById(req.params.id);
+    const ingredient = await Ingredient.findOne({
+      _id: req.params.id,
+      userId: req.user.sub,
+    });
     if (!ingredient)
       return res
         .status(404)
@@ -362,11 +376,12 @@ app.get("/api/ingredients/:id", async (req, res) => {
   }
 });
 
-app.put("/api/ingredients/:id", async (req, res) => {
+app.put("/api/ingredients/:id", requireAuth, async (req, res) => {
   try {
-    const updated = await Ingredient.findByIdAndUpdate(
-      req.params.id,
-      req.body,
+    const { userId: _ignoreClientUserId, ...rest } = req.body || {};
+    const updated = await Ingredient.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.sub },
+      rest,
       {
         new: true,
         runValidators: true,
@@ -382,9 +397,12 @@ app.put("/api/ingredients/:id", async (req, res) => {
   }
 });
 
-app.delete("/api/ingredients/:id", async (req, res) => {
+app.delete("/api/ingredients/:id", requireAuth, async (req, res) => {
   try {
-    const deleted = await Ingredient.findByIdAndDelete(req.params.id);
+    const deleted = await Ingredient.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user.sub,
+    });
     if (!deleted)
       return res
         .status(404)

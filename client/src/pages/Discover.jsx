@@ -2,6 +2,7 @@
 import { AuthContext } from "../context/AuthContext";
 import { useContext, useEffect, useState } from "react";
 import { apiFetch } from "../services/apiClient.js";
+import { getDisplayName } from "../utils/authHelpers";
 
 export default function Discover() {
   const { user, authReady } = useContext(AuthContext);
@@ -107,7 +108,7 @@ export default function Discover() {
               <h1 className="app-title">Discover Foods</h1>
               <p className="app-subtitle">Search for foods and see nutritional &amp; affordability info.</p>
             </div>
-            <span className="app-muted" style={{ fontSize: 13 }}>{user["cognito:username"]}</span>
+            <span className="app-muted" style={{ fontSize: 13 }}>{getDisplayName(user)}</span>
           </div>
         </div>
 

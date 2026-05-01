@@ -92,7 +92,7 @@ export default function AIChatWidget() {
       setSaveStatus("");
 
       const title = "AI Grocery List";
-      await createListFromAI(user, title, lastGroceryList);
+      await createListFromAI(title, lastGroceryList);
 
       setSaveStatus("Saved to My Lists!");
     } catch (err) {

@@ -5,14 +5,12 @@ import PostsList from "../components/PostsList";
 import { useContext } from "react";
 import { loadSavedPosts, savePost, unsavePost } from "../services/savedPostsService"; // Save/Unsave button
 import { AuthContext } from "../context/AuthContext.jsx";
-
-const getUsername = (user) =>
-  user?.["cognito:username"] || user?.username || user?.email || "anonymous";
+import { getDisplayName } from "../utils/authHelpers";
 
 export default function Community() {
   const { user } = useContext(AuthContext);
 
-  const username = useMemo(() => getUsername(user), [user]);
+  const username = useMemo(() => getDisplayName(user), [user]);
 
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);

@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { loadDietPrefs, saveDietPrefs } from "../services/profileService";
 import { loadSavedPosts, unsavePost } from "../services/savedPostsService";
 import { AuthContext } from "../context/AuthContext.jsx";
+import { getDisplayName, getInitial } from "../utils/authHelpers";
 
 const PREFS = [
   { key: "vegetarian", label: "Vegetarian" },
@@ -78,7 +79,7 @@ export default function Profile() {
     );
   }
 
-  const initial = (user["cognito:username"]?.[0] || "U").toUpperCase();
+  const initial = getInitial(user);
 
   return (
     <div className="app-page">
@@ -93,7 +94,7 @@ export default function Profile() {
                 {initial}
               </div>
               <div>
-                <h1 className="app-title">{user["cognito:username"]}</h1>
+                <h1 className="app-title">{getDisplayName(user)}</h1>
                 <p className="app-subtitle">Profile</p>
               </div>
             </div>
