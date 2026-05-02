@@ -3,8 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext.jsx";
 
-const COGNITO_LOGIN_URL =
-  "https://us-east-20wnkbkk1l.auth.us-east-2.amazoncognito.com/login?client_id=1ersrvdta79prnn3uip16snfck&response_type=token&scope=email+openid+phone&redirect_uri=http%3A%2F%2Flocalhost%3A5173%2Floggedin";
+const COGNITO_LOGIN_URL = import.meta.env.VITE_COGNITO_LOGIN_URL;
 
 const FEATURES = [
   { to: "/discover", icon: "🔍", title: "Discover Foods", desc: "Search foods and see nutrition & affordability info." },

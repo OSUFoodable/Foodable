@@ -15,6 +15,7 @@ const __dirname = path.dirname(__filename);
 import GroceryList from "./models/GroceryList.js";
 import Recipe from "./models/Recipe.js";
 import Ingredient from "./models/Ingredient.js";
+import SavedRecipe from "./models/SavedRecipe.js";
 
 dotenv.config();
 
@@ -271,10 +272,71 @@ app.delete("/api/lists/:id", async (req, res) => {
 
 app.get("/api/recipes", async (_req, res) => {
   try {
-    const recipes = await Recipe.find({});
-    res.json(recipes);
+    if (!openai) {
+      return res
+        .status(503)
+        .json({ error: { message: "AI service not configured on server" } });
+    }
+
+    const systemPrompt = `
+You are Foodable's recipe generator.
+
+Return STRICT JSON ONLY with this exact shape:
+{
+  "title": "Recipe name",
+  "ingredients": ["ingredient 1", "ingredient 2"],
+  "steps": ["step 1", "step 2"],
+  "nutrition": {
+    "calories": 650,
+    "protein": 45,
+    "carbs": 70,
+    "fat": 18
+  }
+}
+
+Rules:
+- calories, protein, carbs, and fat MUST be numbers only with no units.
+- calories should be estimated total calories for the full recipe.
+- protein, carbs, and fat should be estimated grams for the full recipe.
+- ingredients must be simple strings.
+- steps must be simple strings.
+- keep the recipe realistic, clear, and simple.
+- use common ingredients.
+- nutrition values should be reasonable estimates.
+- Do NOT include markdown, backticks, or extra text outside the JSON.
+`;
+
+    const response = await openai.responses.create({
+      model: "gpt-4.1-mini",
+      input: [{ role: "system", content: systemPrompt }],
+    });
+
+    const text = response.output_text || "";
+
+    try {
+      const parsed = JSON.parse(text);
+
+      const recipe = {
+        title: parsed?.title || "Generated Recipe",
+        ingredients: Array.isArray(parsed?.ingredients) ? parsed.ingredients : [],
+        steps: Array.isArray(parsed?.steps) ? parsed.steps : [],
+        nutrition: {
+          calories: toNumberOrNull(parsed?.nutrition?.calories),
+          protein: toNumberOrNull(parsed?.nutrition?.protein),
+          carbs: toNumberOrNull(parsed?.nutrition?.carbs),
+          fat: toNumberOrNull(parsed?.nutrition?.fat),
+        },
+      };
+
+      return res.json(recipe);
+    } catch {
+      return res
+        .status(500)
+        .json({ error: { message: "Failed to parse AI recipe response" } });
+    }
   } catch (err) {
-    res.status(500).json({ error: { message: err.message } });
+    console.error("Recipe AI error:", err);
+    res.status(500).json({ error: { message: "Recipe generation failed" } });
   }
 });
 
@@ -323,6 +385,85 @@ app.delete("/api/recipes/:id", async (req, res) => {
     if (!deleted)
       return res.status(404).json({ error: { message: "Recipe not found" } });
     res.json({ message: "Recipe deleted successfully" });
+  } catch (err) {
+    res.status(400).json({ error: { message: err.message } });
+  }
+});
+
+// ---- Saved Recipe CRUD ----
+
+app.get("/api/saved-recipes", async (req, res) => {
+  try {
+    const userEmail = (req.query.userEmail || "").toString().trim().toLowerCase();
+
+    if (!userEmail) {
+      return res.status(400).json({ error: { message: "userEmail is required" } });
+    }
+
+    const savedRecipes = await SavedRecipe.find({ userEmail }).sort({ createdAt: -1 });
+    res.json({ items: savedRecipes });
+  } catch (err) {
+    res.status(500).json({ error: { message: err.message } });
+  }
+});
+
+app.post("/api/saved-recipes", async (req, res) => {
+  try {
+    const { userEmail, recipeId, name, ingredients, instructions, nutrition } = req.body;
+
+    const cleanUserEmail = (userEmail || "").toString().trim().toLowerCase();
+
+    if (!cleanUserEmail) {
+      return res.status(400).json({ error: { message: "userEmail is required" } });
+    }
+
+    const cleanName = (name || "").toString().trim();
+
+    if (!cleanName) {
+      return res.status(400).json({ error: { message: "name is required" } });
+    }
+
+    if (!Array.isArray(ingredients) || ingredients.length === 0) {
+      return res
+        .status(400)
+        .json({ error: { message: "ingredients must be a non-empty array" } });
+    }
+
+    const existing = await SavedRecipe.findOne({
+      userEmail: cleanUserEmail,
+      recipeId: recipeId || null,
+      name: cleanName,
+    });
+
+    if (existing) {
+      return res.status(200).json(existing);
+    }
+
+    const savedRecipe = new SavedRecipe({
+      userEmail: cleanUserEmail,
+      recipeId: recipeId || null,
+      name: cleanName,
+      ingredients,
+      instructions: (instructions || "").toString().trim(),
+      nutrition: nutrition || {},
+    });
+
+    const saved = await savedRecipe.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    res.status(400).json({ error: { message: err.message } });
+  }
+});
+
+app.delete("/api/saved-recipes/:id", async (req, res) => {
+  try {
+    const deleted = await SavedRecipe.findByIdAndDelete(req.params.id);
+
+    if (!deleted) {
+      return res.status(404).json({ error: { message: "Saved recipe not found" } });
+    }
+
+    res.json({ message: "Saved recipe deleted successfully" });
   } catch (err) {
     res.status(400).json({ error: { message: err.message } });
   }
