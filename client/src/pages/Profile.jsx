@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { loadDietPrefs, saveDietPrefs } from "../services/profileService";
 import { loadSavedPosts, unsavePost } from "../services/savedPostsService";
+import { getSavedRecipes, deleteSavedRecipe } from "../services/savedRecipesService";
 import { AuthContext } from "../context/AuthContext.jsx";
 
 const PREFS = [
@@ -27,6 +28,25 @@ export default function Profile() {
   const [savedPosts, setSavedPosts] = useState(() =>
     user ? loadSavedPosts(user) : [],
   );
+  const [savedRecipes, setSavedRecipes] = useState([]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const userEmail =
+      user.email || user["cognito:username"] || user.username;
+
+    async function fetchSavedRecipes() {
+      try {
+        const res = await getSavedRecipes(userEmail);
+        setSavedRecipes(res.items || []);
+      } catch (err) {
+        console.error("Failed to load saved recipes", err);
+      }
+    }
+
+    fetchSavedRecipes();
+  }, [user]);
 
   function togglePref(key) {
     setDietPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -196,6 +216,71 @@ export default function Profile() {
                         {post.body}
                       </p>
                     )}
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="app-card" style={{ marginTop: 16 }}>
+          <h2 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 700 }}>
+            Saved Recipes
+          </h2>
+
+          {savedRecipes.length === 0 ? (
+            <p className="app-muted" style={{ margin: 0 }}>
+              No saved recipes yet.
+            </p>
+          ) : (
+            <div className="app-grid">
+              {savedRecipes.map((recipe) => {
+                const id = recipe._id;
+
+                return (
+                  <article key={id} className="app-card">
+                    <div className="app-flex-between">
+                      <div style={{ fontWeight: 700 }}>
+                        {recipe.name}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await deleteSavedRecipe(id);
+                            setSavedRecipes((prev) =>
+                              prev.filter((r) => r._id !== id)
+                            );
+                          } catch (err) {
+                            console.error("Failed to delete recipe", err);
+                          }
+                        }}
+                        className="app-btn app-btn-danger app-btn-sm"
+                      >
+                        Unfavorite
+                      </button>
+                    </div>
+
+                    <div style={{ marginTop: 10 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.8 }}>
+                        Ingredients
+                      </div>
+                      <ul style={{ margin: "4px 0 10px", paddingLeft: 18 }}>
+                        {recipe.ingredients.map((ing, i) => (
+                          <li key={i} style={{ fontSize: 13 }}>
+                            {ing}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.8 }}>
+                        Instructions
+                      </div>
+                      <p style={{ fontSize: 13, marginTop: 4, whiteSpace: "pre-line" }}>
+                        {recipe.instructions}
+                      </p>
+                    </div>
                   </article>
                 );
               })}

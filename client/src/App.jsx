@@ -24,6 +24,7 @@ function App() {
   const { user } = useContext(AuthContext);
 
   const [dietPrefs, setDietPrefs] = useState(null);
+  const [avatarColor, setAvatarColor] = useState("#2f855a");
 
   useEffect(() => {
     if (!user) {
@@ -31,6 +32,22 @@ function App() {
       return;
     }
     setDietPrefs(loadDietPrefs(user));
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const colors = ["#2f855a", "#3182ce", "#d69e2e", "#805ad5", "#e53e3e", "#dd6b20"];
+    const key = `avatarColor_${user.email || "default"}`;
+
+    let savedColor = localStorage.getItem(key);
+
+    if (!savedColor) {
+      savedColor = colors[Math.floor(Math.random() * colors.length)];
+      localStorage.setItem(key, savedColor);
+    }
+
+    setAvatarColor(savedColor);
   }, [user]);
 
   return (
@@ -84,9 +101,6 @@ function App() {
                 <Link to="/community" className="app-nav-link">
                   Community
                 </Link>
-                <Link to="/profile" className="app-nav-link">
-                  Profile
-                </Link>
               </>
             ) : (
               // Only visible when logged out
@@ -95,6 +109,27 @@ function App() {
               </a>
             )}
           </nav>
+
+          {user && (
+            <Link
+              to="/profile"
+              title="Profile"
+              style={{
+                marginLeft: "auto",
+                width: "38px",
+                height: "38px",
+                borderRadius: "50%",
+                backgroundColor: avatarColor,
+                color: "white",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                textDecoration: "none",
+              }}
+            >
+              <span style={{ fontSize: "1.2rem" }}>👤</span>
+            </Link>
+          )}
         </div>
       </header>
 
