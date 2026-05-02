@@ -60,6 +60,7 @@ const LS = {
   staplesState: "foodable_ing_staples_state_v1",
   favorites: "foodable_ing_favorites_v1",
   recent: "foodable_ing_recent_v1",
+  recipeDraft: "foodable_recipe_ingredients_draft",
 };
 
 const DEFAULT_PACKS = [
@@ -236,7 +237,9 @@ export default function IngredientsPage() {
       setSelected((prev) => {
         const existing = new Set(next.map((x) => getRowId(x)).filter(Boolean));
         const keep = new Set();
-        for (const id of prev) if (existing.has(id)) keep.add(id);
+        for (const id of prev) {
+          if (existing.has(id)) keep.add(id);
+        }
         return keep;
       });
     } catch (e) {
@@ -564,8 +567,8 @@ export default function IngredientsPage() {
   function handleCreateRecipe() {
     if (recipeIngredientDraft.length === 0) return;
 
-    localStorage.setItem("foodable_recipe_ingredients_draft", JSON.stringify(recipeIngredientDraft));
-    window.location.assign("/recipes/new");
+    writeJson(LS.recipeDraft, recipeIngredientDraft);
+    window.location.assign("/recipes");
   }
 
   function isFavorite(it) {
@@ -760,7 +763,7 @@ export default function IngredientsPage() {
             Keep your pantry current, then create recipes from what you have.
             <span className="ing3_subtle">
               {" "}
-              API <span className="ing3_mono">{import.meta.env.VITE_API_URL || "not set"}</span>
+              Local ingredient storage active
             </span>
           </div>
         </div>
@@ -1474,8 +1477,7 @@ export default function IngredientsPage() {
 
             <div className="ing3_modalBody">
               <p className="ing3_confirmText">
-                Are you sure you want to delete <span className="ing3_confirmStrong">{confirmItem?.name}</span>
-                This cannot be undone.
+                Are you sure you want to delete <span className="ing3_confirmStrong">{confirmItem?.name}</span>? This cannot be undone.
               </p>
             </div>
 

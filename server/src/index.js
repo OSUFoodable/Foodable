@@ -111,6 +111,47 @@ function sanitizeGroceryList(list) {
   return clean.slice(0, 60);
 }
 
+/* ---------------------------
+   Helpers for AI recipe generation
+---------------------------- */
+function normalizeString(v) {
+  return String(v || "").trim();
+}
+
+function sanitizeRecipeIngredients(input) {
+  const arr = Array.isArray(input) ? input : [];
+
+  return arr
+    .map((item) => ({
+      name: normalizeString(item?.name),
+      qty: item?.qty ?? null,
+      unit: normalizeString(item?.unit) || null,
+    }))
+    .filter((item) => item.name);
+}
+
+function buildRecipeIngredientText(ingredients) {
+  return ingredients
+    .map((item) => {
+      if (item.qty != null && item.unit) {
+        return `- ${item.name}: ${item.qty} ${item.unit}`;
+      }
+      if (item.qty != null) {
+        return `- ${item.name}: ${item.qty}`;
+      }
+      return `- ${item.name}`;
+    })
+    .join("\n");
+}
+
+function validateRecipeShape(recipe) {
+  if (!recipe || typeof recipe !== "object") return false;
+  if (!normalizeString(recipe.title)) return false;
+  if (!Array.isArray(recipe.ingredients) || recipe.ingredients.length === 0) return false;
+  if (!Array.isArray(recipe.steps) || recipe.steps.length === 0) return false;
+  return true;
+}
+
 // ---- AI Chat ----
 app.post("/api/ai/chat", async (req, res) => {
   try {
@@ -204,6 +245,110 @@ Requirements:
   } catch (err) {
     console.error("AI error:", err);
     res.status(500).json({ error: { message: "AI request failed" } });
+  }
+});
+
+// ---- AI Recipe Generation ----
+app.post("/api/recipes/generate", async (req, res) => {
+  try {
+    if (!openai) {
+      return res
+        .status(503)
+        .json({ error: { message: "AI service not configured on server" } });
+    }
+
+    const ingredients = sanitizeRecipeIngredients(req.body?.ingredients);
+
+    if (ingredients.length === 0) {
+      return res
+        .status(400)
+        .json({ error: { message: "At least one ingredient is required" } });
+    }
+
+    const ingredientText = buildRecipeIngredientText(ingredients);
+
+    const prompt = `
+You are generating a simple home cooking recipe for the Foodable app.
+
+Use the provided ingredients as the main available ingredients.
+You may assume very basic pantry support only when necessary, but strongly prefer the provided ingredients.
+
+Return STRICT JSON ONLY with this exact shape:
+{
+  "title": "Recipe title",
+  "summary": "One short summary sentence",
+  "ingredients": [
+    { "name": "ingredient name", "quantity": "amount" }
+  ],
+  "steps": [
+    "Step one",
+    "Step two"
+  ]
+}
+
+Requirements:
+- No markdown
+- No code fences
+- No extra text outside the JSON
+- Keep the recipe realistic and concise
+- Include 3 to 7 steps
+- Quantities should be human readable strings like "1 cup", "2 tbsp", "1 lb"
+
+Available ingredients:
+${ingredientText}
+`;
+
+    const response = await openai.responses.create({
+      model: "gpt-4.1-mini",
+      input: [
+        {
+          role: "system",
+          content: "You are a recipe generator that returns only valid JSON.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    const text = response.output_text || "";
+
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      console.error("Recipe JSON parse failed:", text);
+      return res
+        .status(502)
+        .json({ error: { message: "Recipe generation returned invalid JSON" } });
+    }
+
+    if (!validateRecipeShape(parsed)) {
+      console.error("Recipe response shape invalid:", parsed);
+      return res
+        .status(502)
+        .json({ error: { message: "Recipe generation returned invalid data" } });
+    }
+
+    const normalizedRecipe = {
+      title: normalizeString(parsed.title),
+      summary: normalizeString(parsed.summary),
+      ingredients: parsed.ingredients
+        .map((item) => ({
+          name: normalizeString(item?.name),
+          quantity: normalizeString(item?.quantity),
+        }))
+        .filter((item) => item.name),
+      steps: parsed.steps.map((step) => normalizeString(step)).filter(Boolean),
+    };
+
+    return res.json(normalizedRecipe);
+  } catch (err) {
+    console.error("Recipe generation error:", err);
+    return res.status(500).json({
+      error: { message: err?.message || "Recipe generation failed" },
+    });
   }
 });
 
@@ -423,4 +568,16 @@ async function start() {
   }
 }
 
+// For local testing only
+//start();
+
+// Database ---------------------------------------------------------------------------
+mongoose
+  .connect(MONGODB_URI)
+  .then(() => {
+    console.log("MongoDB connected");
+    app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+  })
+  .catch(err => console.error("MongoDB connection error:", err));
+  
 start();

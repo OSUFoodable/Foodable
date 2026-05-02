@@ -3,14 +3,18 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  color-scheme: dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: #0b0b0d;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  background-color: #0b0b0d;
 }
 
 a {
@@ -26,8 +30,13 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #242424;
+  background-color: #0b0b0d;
   color: rgba(255, 255, 255, 0.87);
+}
+
+#root {
+  min-height: 100vh;
+  background-color: #0b0b0d;
 }
 
 h1 {
@@ -352,19 +361,6 @@ button:focus-visible {
   }
 }
 
-/* keep base light scheme behavior */
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
 /* Ingredients page, award level UX: clean, minimal, scoped */
 
 .ing2 {
@@ -373,7 +369,6 @@ button:focus-visible {
   padding: 24px;
   display: grid;
   gap: 14px;
-  background: #0b0b0d;
   min-height: calc(100vh - 80px);
 }
 
@@ -845,6 +840,7 @@ button:focus-visible {
     min-width: 760px;
   }
 }
+
 /* Ingredients page (ing3): main stays structured, sidebar becomes minimalist */
 
 .ing3 {
@@ -853,7 +849,6 @@ button:focus-visible {
   padding: 24px;
   display: grid;
   gap: 14px;
-  background: #0b0b0d;
   min-height: calc(100vh - 80px);
 }
 
