@@ -1,7 +1,7 @@
 // Foodable/client/src/pages/MyLists.jsx
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
-import { fetchLists, deleteList } from "../services/myListsService.js";
+import { fetchLists, deleteList, renameList } from "../services/myListsService.js";
 
 export default function MyLists() {
   const { user } = useContext(AuthContext);
@@ -13,11 +13,16 @@ export default function MyLists() {
   const [loading, setLoading] = useState(true);
   const [errMsg, setErrMsg] = useState("");
 
+  const [editingId, setEditingId] = useState(null);
+  const [draftTitle, setDraftTitle] = useState("");
+
   async function loadLists() {
     if (!user) return;
+
     try {
       setLoading(true);
       setErrMsg("");
+
       const data = await fetchLists(user);
       setLists(data);
     } catch (err) {
@@ -36,12 +41,20 @@ export default function MyLists() {
       try {
         setLoading(true);
         setErrMsg("");
+
         const data = await fetchLists(user);
-        if (!cancelled) setLists(data);
+
+        if (!cancelled) {
+          setLists(data);
+        }
       } catch (err) {
-        if (!cancelled) setErrMsg(err.message || "Failed to load lists");
+        if (!cancelled) {
+          setErrMsg(err.message || "Failed to load lists");
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     })();
 
@@ -50,7 +63,13 @@ export default function MyLists() {
     };
   }, [user]);
 
-  if (!user) return <p className="app-muted" style={{ padding: 24 }}>Loading user information...</p>;
+  if (!user) {
+    return (
+      <p className="app-muted" style={{ padding: 24 }}>
+        Loading user information...
+      </p>
+    );
+  }
 
   return (
     <div className="app-page">
@@ -62,58 +81,157 @@ export default function MyLists() {
               <h1 className="app-title">My Lists</h1>
               <p className="app-subtitle">Welcome, {username}</p>
             </div>
-            <button type="button" onClick={loadLists} className="app-btn app-btn-sm">
+
+            <button
+              type="button"
+              onClick={loadLists}
+              className="app-btn app-btn-sm"
+            >
               Refresh
             </button>
           </div>
         </div>
 
         {loading && <p className="app-muted">Loading lists…</p>}
+
         {errMsg && <p className="app-error">{errMsg}</p>}
 
         {!loading && !errMsg && lists.length === 0 && (
           <p className="app-muted">
-            No grocery lists saved yet. Generate one in the chatbot and click "Save".
+            No grocery lists saved yet. Generate one in the chatbot and click
+            "Save".
           </p>
         )}
 
         <div className="app-grid">
           {lists.map((list) => (
             <div key={list._id} className="app-card">
-              <div className="app-flex-between" style={{ marginBottom: 10 }}>
+              <div
+                className="app-flex-between"
+                style={{ marginBottom: 10 }}
+              >
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: 17 }}>
-                    {list.title || "Grocery List"}
-                  </div>
-                  <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>
-                    {list.createdAt ? new Date(list.createdAt).toLocaleString() : ""}
+                  {editingId === list._id ? (
+                    <input
+                      value={draftTitle}
+                      onChange={(e) => setDraftTitle(e.target.value)}
+                      className="app-input"
+                      style={{ maxWidth: 220 }}
+                      autoFocus
+                    />
+                  ) : (
+                    <div style={{ fontWeight: 800, fontSize: 17 }}>
+                      {list.title || "Grocery List"}
+                    </div>
+                  )}
+
+                  <div
+                    style={{
+                      fontSize: 12,
+                      opacity: 0.6,
+                      marginTop: 2,
+                    }}
+                  >
+                    {list.createdAt
+                      ? new Date(list.createdAt).toLocaleString()
+                      : ""}
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      await deleteList(list._id);
-                      setLists((prev) => prev.filter((x) => x._id !== list._id));
-                    } catch (err) {
-                      alert(err.message || "Failed to delete list");
-                    }
-                  }}
-                  className="app-btn app-btn-danger app-btn-sm"
-                >
-                  Delete
-                </button>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {editingId === list._id ? (
+                    <>
+                      <button
+                        type="button"
+                        className="app-btn app-btn-sm"
+                        onClick={async () => {
+                          try {
+                            const updated = await renameList(
+                              list._id,
+                              draftTitle
+                            );
+
+                            setLists((prev) =>
+                              prev.map((x) =>
+                                x._id === list._id ? updated : x
+                              )
+                            );
+
+                            setEditingId(null);
+                            setDraftTitle("");
+                          } catch (err) {
+                            alert(err.message || "Failed to rename list");
+                          }
+                        }}
+                      >
+                        Save
+                      </button>
+
+                      <button
+                        type="button"
+                        className="app-btn app-btn-sm"
+                        onClick={() => {
+                          setEditingId(null);
+                          setDraftTitle("");
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="app-btn app-btn-sm"
+                      onClick={() => {
+                        setEditingId(list._id);
+                        setDraftTitle(list.title || "Grocery List");
+                      }}
+                    >
+                      Rename
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await deleteList(list._id);
+
+                        setLists((prev) =>
+                          prev.filter((x) => x._id !== list._id)
+                        );
+                      } catch (err) {
+                        alert(err.message || "Failed to delete list");
+                      }
+                    }}
+                    className="app-btn app-btn-danger app-btn-sm"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
 
               <ul style={{ margin: 0, paddingLeft: 18 }}>
                 {(list.items || []).map((item, idx) => (
-                  <li key={idx} style={{ marginBottom: 4, fontSize: 14 }}>
-                    <span style={{ fontWeight: 600 }}>{item.name}</span>
-                    {typeof item.qty === "number" ? ` — ${item.qty}` : ""}
+                  <li
+                    key={idx}
+                    style={{ marginBottom: 4, fontSize: 14 }}
+                  >
+                    <span style={{ fontWeight: 600 }}>
+                      {item.name}
+                    </span>
+
+                    {typeof item.qty === "number"
+                      ? ` — ${item.qty}`
+                      : ""}
+
                     {item.unit ? ` ${item.unit}` : ""}
+
                     {item.category ? (
-                      <span className="app-muted"> ({item.category})</span>
+                      <span className="app-muted">
+                        {" "}
+                        ({item.category})
+                      </span>
                     ) : null}
                   </li>
                 ))}

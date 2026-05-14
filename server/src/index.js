@@ -255,6 +255,34 @@ app.post("/api/lists", async (req, res) => {
   }
 });
 
+// Rename/update a list
+app.put("/api/lists/:id", async (req, res) => {
+  try {
+    const title = (req.body.title || "").toString().trim();
+
+    if (!title) {
+      return res.status(400).json({ error: { message: "title is required" } });
+    }
+
+    const updated = await GroceryList.findByIdAndUpdate(
+      req.params.id,
+      { title },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: { message: "List not found" } });
+    }
+
+    res.json(updated);
+  } catch (err) {
+    res.status(400).json({ error: { message: err.message } });
+  }
+});
+
 // Delete a list
 app.delete("/api/lists/:id", async (req, res) => {
   try {

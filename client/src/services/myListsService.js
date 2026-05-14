@@ -46,3 +46,11 @@ export async function createListFromIngredients(user, title, items) {
     }),
   });
 }
+
+// Rename List
+export async function renameList(id, title) {
+  return apiFetch(`/api/lists/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({ title }),
+  });
+}
