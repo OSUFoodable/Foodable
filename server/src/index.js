@@ -255,18 +255,42 @@ app.post("/api/lists", async (req, res) => {
   }
 });
 
-// Rename/update a list
+// Update a list title and/or items
 app.put("/api/lists/:id", async (req, res) => {
   try {
-    const title = (req.body.title || "").toString().trim();
+    const updates = {};
 
-    if (!title) {
-      return res.status(400).json({ error: { message: "title is required" } });
+    if (req.body.title !== undefined) {
+      const title = (req.body.title || "").toString().trim();
+
+      if (!title) {
+        return res.status(400).json({ error: { message: "title is required" } });
+      }
+
+      updates.title = title;
+    }
+
+    if (req.body.items !== undefined) {
+      const cleanItems = sanitizeGroceryList(req.body.items);
+
+      if (cleanItems.length === 0) {
+        return res
+          .status(400)
+          .json({ error: { message: "items must be a non-empty array" } });
+      }
+
+      updates.items = cleanItems;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res
+        .status(400)
+        .json({ error: { message: "No updates provided" } });
     }
 
     const updated = await GroceryList.findByIdAndUpdate(
       req.params.id,
-      { title },
+      updates,
       {
         new: true,
         runValidators: true,

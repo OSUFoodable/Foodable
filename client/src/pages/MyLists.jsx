@@ -1,7 +1,7 @@
 // Foodable/client/src/pages/MyLists.jsx
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext.jsx";
-import { fetchLists, deleteList, renameList } from "../services/myListsService.js";
+import { fetchLists, deleteList, renameList, updateList } from "../services/myListsService.js";
 
 export default function MyLists() {
   const { user } = useContext(AuthContext);
@@ -15,6 +15,13 @@ export default function MyLists() {
 
   const [editingId, setEditingId] = useState(null);
   const [draftTitle, setDraftTitle] = useState("");
+
+  const [editingItemsId, setEditingItemsId] = useState(null);
+  const [draftItems, setDraftItems] = useState([]);
+
+  const [newItemName, setNewItemName] = useState("");
+  const [newItemQty, setNewItemQty] = useState("");
+  const [newItemUnit, setNewItemUnit] = useState("");
 
   async function loadLists() {
     if (!user) return;
@@ -138,7 +145,7 @@ export default function MyLists() {
                   </div>
                 </div>
 
-                <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {editingId === list._id ? (
                     <>
                       <button
@@ -193,6 +200,17 @@ export default function MyLists() {
 
                   <button
                     type="button"
+                    className="app-btn app-btn-sm"
+                    onClick={() => {
+                      setEditingItemsId(list._id);
+                      setDraftItems(list.items || []);
+                    }}
+                  >
+                    Edit Items
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={async () => {
                       try {
                         await deleteList(list._id);
@@ -211,31 +229,183 @@ export default function MyLists() {
                 </div>
               </div>
 
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                {(list.items || []).map((item, idx) => (
-                  <li
-                    key={idx}
-                    style={{ marginBottom: 4, fontSize: 14 }}
+              {editingItemsId === list._id ? (
+                <div>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    {draftItems.map((item, idx) => (
+                      <li
+                        key={idx}
+                        style={{ marginBottom: 8, fontSize: 14 }}
+                      >
+                        <span style={{ fontWeight: 600 }}>
+                          {item.name}
+                        </span>
+
+                        {typeof item.qty === "number"
+                          ? ` — ${item.qty}`
+                          : ""}
+
+                        {item.unit ? ` ${item.unit}` : ""}
+
+                        {item.category ? (
+                          <span className="app-muted">
+                            {" "}
+                            ({item.category})
+                          </span>
+                        ) : null}
+
+                        <button
+                          type="button"
+                          className="app-btn app-btn-danger app-btn-sm"
+                          style={{ marginLeft: 8 }}
+                          onClick={() => {
+                            setDraftItems((prev) =>
+                              prev.filter((_, i) => i !== idx)
+                            );
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 8,
+                      marginTop: 12,
+                      flexWrap: "wrap",
+                    }}
                   >
-                    <span style={{ fontWeight: 600 }}>
-                      {item.name}
-                    </span>
+                    <input
+                      className="app-input"
+                      value={newItemName}
+                      onChange={(e) => setNewItemName(e.target.value)}
+                      placeholder="Item name"
+                    />
 
-                    {typeof item.qty === "number"
-                      ? ` — ${item.qty}`
-                      : ""}
+                    <input
+                      className="app-input"
+                      value={newItemQty}
+                      onChange={(e) => setNewItemQty(e.target.value)}
+                      placeholder="Qty"
+                      style={{ maxWidth: 80 }}
+                    />
 
-                    {item.unit ? ` ${item.unit}` : ""}
+                    <input
+                      className="app-input"
+                      value={newItemUnit}
+                      onChange={(e) => setNewItemUnit(e.target.value)}
+                      placeholder="Unit"
+                      style={{ maxWidth: 100 }}
+                    />
 
-                    {item.category ? (
-                      <span className="app-muted">
-                        {" "}
-                        ({item.category})
+                    <button
+                      type="button"
+                      className="app-btn app-btn-sm"
+                      onClick={() => {
+                        const name = newItemName.trim();
+
+                        if (!name) return;
+
+                        setDraftItems((prev) => [
+                          ...prev,
+                          {
+                            name,
+                            qty: Number(newItemQty) || 1,
+                            unit: newItemUnit.trim() || "count",
+                            category: "other",
+                          },
+                        ]);
+
+                        setNewItemName("");
+                        setNewItemQty("");
+                        setNewItemUnit("");
+                      }}
+                    >
+                      Add Item
+                    </button>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 8,
+                      marginTop: 12,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="app-btn app-btn-sm"
+                      onClick={async () => {
+                        try {
+                          const updated = await updateList(
+                            list._id,
+                            {
+                              items: draftItems,
+                            }
+                          );
+
+                          setLists((prev) =>
+                            prev.map((x) =>
+                              x._id === list._id ? updated : x
+                            )
+                          );
+
+                          setEditingItemsId(null);
+                          setDraftItems([]);
+                        } catch (err) {
+                          alert(err.message || "Failed to update list");
+                        }
+                      }}
+                    >
+                      Save Items
+                    </button>
+
+                    <button
+                      type="button"
+                      className="app-btn app-btn-sm"
+                      onClick={() => {
+                        setEditingItemsId(null);
+                        setDraftItems([]);
+
+                        setNewItemName("");
+                        setNewItemQty("");
+                        setNewItemUnit("");
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  {(list.items || []).map((item, idx) => (
+                    <li
+                      key={idx}
+                      style={{ marginBottom: 4, fontSize: 14 }}
+                    >
+                      <span style={{ fontWeight: 600 }}>
+                        {item.name}
                       </span>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
+
+                      {typeof item.qty === "number"
+                        ? ` — ${item.qty}`
+                        : ""}
+
+                      {item.unit ? ` ${item.unit}` : ""}
+
+                      {item.category ? (
+                        <span className="app-muted">
+                          {" "}
+                          ({item.category})
+                        </span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           ))}
         </div>

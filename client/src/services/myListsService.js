@@ -7,7 +7,11 @@ function getOwner(user) {
 
 export async function fetchLists(user) {
   const owner = getOwner(user);
-  const data = await apiFetch(`/api/lists?owner=${encodeURIComponent(owner)}`);
+
+  const data = await apiFetch(
+    `/api/lists?owner=${encodeURIComponent(owner)}`
+  );
+
   return data.items || [];
 }
 
@@ -15,7 +19,9 @@ export async function fetchLists(user) {
 export async function createListFromAI(user, title, items) {
   const owner = getOwner(user);
 
-  // items should be like: [{ name, qty, unit, category }]
+  // items should be like:
+  // [{ name, qty, unit, category }]
+
   return apiFetch("/api/lists", {
     method: "POST",
     body: JSON.stringify({
@@ -25,11 +31,6 @@ export async function createListFromAI(user, title, items) {
       source: "ai",
     }),
   });
-}
-
-// Delete List
-export async function deleteList(id) {
-  return apiFetch(`/api/lists/${id}`, { method: "DELETE" });
 }
 
 // Create List From Ingredients Page
@@ -47,10 +48,22 @@ export async function createListFromIngredients(user, title, items) {
   });
 }
 
-// Rename List
-export async function renameList(id, title) {
+// Update List
+export async function updateList(id, payload) {
   return apiFetch(`/api/lists/${id}`, {
     method: "PUT",
-    body: JSON.stringify({ title }),
+    body: JSON.stringify(payload),
+  });
+}
+
+// Rename List
+export async function renameList(id, title) {
+  return updateList(id, { title });
+}
+
+// Delete List
+export async function deleteList(id) {
+  return apiFetch(`/api/lists/${id}`, {
+    method: "DELETE",
   });
 }
