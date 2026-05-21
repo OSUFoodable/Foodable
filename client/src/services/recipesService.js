@@ -6,6 +6,10 @@ export async function getRecipes() {
   return apiFetch('/api/recipes');
 }
 
+export async function generateRecipe() {
+  return apiFetch('/api/recipes/generate', { method: 'POST' });
+}
+
 export async function getRecipeById(id) {
   return apiFetch(`/api/recipes/${id}`);
 }
