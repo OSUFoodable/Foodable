@@ -3,11 +3,10 @@ import mongoose from "mongoose";
 
 const savedRecipeSchema = new mongoose.Schema(
   {
-    userEmail: {
+    userId: {
       type: String,
       required: true,
-      trim: true,
-      lowercase: true,
+      index: true,
     },
     recipeId: {
       type: String,

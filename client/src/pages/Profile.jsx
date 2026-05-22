@@ -1,8 +1,7 @@
 // client\src\pages\Profile.jsx
-import { useEffect, useMemo, useState, useContext } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { loadDietPrefs, saveDietPrefs } from "../services/profileService";
 import { loadSavedPosts, unsavePost } from "../services/savedPostsService";
 import { getSavedRecipes, deleteSavedRecipe } from "../services/savedRecipesService";
 import { AuthContext } from "../context/AuthContext.jsx";
@@ -34,12 +33,9 @@ export default function Profile() {
   useEffect(() => {
     if (!user) return;
 
-    const userEmail =
-      user.email || user["cognito:username"] || user.username;
-
     async function fetchSavedRecipes() {
       try {
-        const res = await getSavedRecipes(userEmail);
+        const res = await getSavedRecipes();
         setSavedRecipes(res.items || []);
       } catch (err) {
         console.error("Failed to load saved recipes", err);

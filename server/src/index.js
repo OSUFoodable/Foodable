@@ -464,30 +464,20 @@ app.delete("/api/recipes/:id", requireAuth, async (req, res) => {
 
 // ---- Saved Recipe CRUD ----
 
-app.get("/api/saved-recipes", async (req, res) => {
+app.get("/api/saved-recipes", requireAuth, async (req, res) => {
   try {
-    const userEmail = (req.query.userEmail || "").toString().trim().toLowerCase();
-
-    if (!userEmail) {
-      return res.status(400).json({ error: { message: "userEmail is required" } });
-    }
-
-    const savedRecipes = await SavedRecipe.find({ userEmail }).sort({ createdAt: -1 });
+    const savedRecipes = await SavedRecipe.find({ userId: req.user.sub }).sort({
+      createdAt: -1,
+    });
     res.json({ items: savedRecipes });
   } catch (err) {
     res.status(500).json({ error: { message: err.message } });
   }
 });
 
-app.post("/api/saved-recipes", async (req, res) => {
+app.post("/api/saved-recipes", requireAuth, async (req, res) => {
   try {
-    const { userEmail, recipeId, name, ingredients, instructions, nutrition } = req.body;
-
-    const cleanUserEmail = (userEmail || "").toString().trim().toLowerCase();
-
-    if (!cleanUserEmail) {
-      return res.status(400).json({ error: { message: "userEmail is required" } });
-    }
+    const { recipeId, name, ingredients, instructions, nutrition } = req.body;
 
     const cleanName = (name || "").toString().trim();
 
@@ -502,7 +492,7 @@ app.post("/api/saved-recipes", async (req, res) => {
     }
 
     const existing = await SavedRecipe.findOne({
-      userEmail: cleanUserEmail,
+      userId: req.user.sub,
       recipeId: recipeId || null,
       name: cleanName,
     });
@@ -512,7 +502,7 @@ app.post("/api/saved-recipes", async (req, res) => {
     }
 
     const savedRecipe = new SavedRecipe({
-      userEmail: cleanUserEmail,
+      userId: req.user.sub,
       recipeId: recipeId || null,
       name: cleanName,
       ingredients,
@@ -527,9 +517,12 @@ app.post("/api/saved-recipes", async (req, res) => {
   }
 });
 
-app.delete("/api/saved-recipes/:id", async (req, res) => {
+app.delete("/api/saved-recipes/:id", requireAuth, async (req, res) => {
   try {
-    const deleted = await SavedRecipe.findByIdAndDelete(req.params.id);
+    const deleted = await SavedRecipe.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user.sub,
+    });
 
     if (!deleted) {
       return res.status(404).json({ error: { message: "Saved recipe not found" } });

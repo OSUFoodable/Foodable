@@ -16,8 +16,6 @@ export default function Recipes() {
 
   if (!user) return <p className="app-muted" style={{ padding: 24 }}>Loading user information...</p>;
 
-  const userEmail = user.email || user["cognito:username"] || user.username;
-
   async function handleGenerate() {
     setLoading(true);
     setError('');
@@ -33,14 +31,13 @@ export default function Recipes() {
   }
 
   async function handleSaveRecipe() {
-    if (!recipe || !userEmail) return;
+    if (!recipe) return;
 
     setSaving(true);
     setError('');
 
     try {
       const saved = await saveRecipe({
-        userEmail,
         recipeId: recipe._id || recipe.id || null,
         name: recipe.title || recipe.name || 'Untitled Recipe',
         ingredients: recipe.ingredients || [],

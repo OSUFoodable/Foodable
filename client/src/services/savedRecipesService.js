@@ -2,8 +2,8 @@
 
 import { apiFetch } from "./apiClient";
 
-export async function getSavedRecipes(userEmail) {
-  return apiFetch(`/api/saved-recipes?userEmail=${encodeURIComponent(userEmail)}`);
+export async function getSavedRecipes() {
+  return apiFetch("/api/saved-recipes");
 }
 
 export async function saveRecipe(payload) {

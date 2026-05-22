@@ -3,9 +3,16 @@ client/node_modules
 server/node_modules
 client/dist
 .env
+.env.*
+client/.env
+client/.env.*
 server/.env
+server/.env.*
 .git
 .gitignore
 *.md
 .claude
 .vscode
+**/*.log
+coverage
+.DS_Store
