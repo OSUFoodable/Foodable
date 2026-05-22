@@ -15,16 +15,23 @@ encode zstd gzip
 
 }
 
-# Development (password-protected)
+# Development (SPA shell is password-protected; API is gated by Cognito instead)
 
 dev.osufoodable.app {
-encode zstd gzip
+	encode zstd gzip
 
-    # Generate the hash with: docker run --rm caddy:latest caddy hash-password
-    basicauth {
-    	developer $2a$14$0Kc7J9PDN1RRXRkNNr5lleUa5vg4u0v236NdbFoNoHrQyjuOKpJU.
-    }
+	# API paths skip basicauth — they're already gated by Cognito's requireAuth.
+	@api path /api/*
+	handle @api {
+		reverse_proxy app-dev:5050
+	}
 
-    reverse_proxy app-dev:5050
-
+	# Everything else (SPA HTML/JS/CSS) requires the developer password.
+	handle {
+		# Generate the hash with: docker run --rm caddy:latest caddy hash-password
+		basicauth {
+			developer $2a$14$0Kc7J9PDN1RRXRkNNr5lleUa5vg4u0v236NdbFoNoHrQyjuOKpJU.
+		}
+		reverse_proxy app-dev:5050
+	}
 }
