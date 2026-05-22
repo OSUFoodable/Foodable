@@ -12,7 +12,15 @@ export async function apiFetch(path, options = {}) {
     headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  // credentials: 'omit' prevents the browser from auto-attaching cached
+  // basicauth (used by Caddy to gate the dev SPA shell) onto API requests,
+  // which Safari otherwise sends in addition to — and sometimes instead of —
+  // our explicit Bearer token.
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers,
+    credentials: "omit",
+  });
 
   if (!res.ok) {
     let msg = `Request failed ${res.status}`;
