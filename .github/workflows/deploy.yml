@@ -1,0 +1,110 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  id-token: write   # required to mint the OIDC token Actions hands to AWS
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pick target environment
+        id: target
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "service=app-prod" >> "$GITHUB_OUTPUT"
+            echo "repo=${{ secrets.ECR_REPO_PROD }}" >> "$GITHUB_OUTPUT"
+            echo "tag_var=PROD_IMAGE_TAG" >> "$GITHUB_OUTPUT"
+            echo "cognito_domain=${{ secrets.PROD_VITE_COGNITO_DOMAIN }}" >> "$GITHUB_OUTPUT"
+            echo "cognito_region=${{ secrets.PROD_VITE_COGNITO_REGION }}" >> "$GITHUB_OUTPUT"
+            echo "cognito_client_id=${{ secrets.PROD_VITE_COGNITO_CLIENT_ID }}" >> "$GITHUB_OUTPUT"
+            echo "cognito_redirect_uri=${{ secrets.PROD_VITE_COGNITO_REDIRECT_URI }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "service=app-dev" >> "$GITHUB_OUTPUT"
+            echo "repo=${{ secrets.ECR_REPO_DEV }}" >> "$GITHUB_OUTPUT"
+            echo "tag_var=DEV_IMAGE_TAG" >> "$GITHUB_OUTPUT"
+            echo "cognito_domain=${{ secrets.DEV_VITE_COGNITO_DOMAIN }}" >> "$GITHUB_OUTPUT"
+            echo "cognito_region=${{ secrets.DEV_VITE_COGNITO_REGION }}" >> "$GITHUB_OUTPUT"
+            echo "cognito_client_id=${{ secrets.DEV_VITE_COGNITO_CLIENT_ID }}" >> "$GITHUB_OUTPUT"
+            echo "cognito_redirect_uri=${{ secrets.DEV_VITE_COGNITO_REDIRECT_URI }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Log in to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          REPO: ${{ steps.target.outputs.repo }}
+          SHA: ${{ github.sha }}
+        run: |
+          IMAGE="$REGISTRY/$REPO"
+          docker build \
+            --build-arg VITE_API_URL="" \
+            --build-arg VITE_COGNITO_DOMAIN="${{ steps.target.outputs.cognito_domain }}" \
+            --build-arg VITE_COGNITO_REGION="${{ steps.target.outputs.cognito_region }}" \
+            --build-arg VITE_COGNITO_CLIENT_ID="${{ steps.target.outputs.cognito_client_id }}" \
+            --build-arg VITE_COGNITO_REDIRECT_URI="${{ steps.target.outputs.cognito_redirect_uri }}" \
+            -t "$IMAGE:$SHA" -t "$IMAGE:latest" .
+          docker push "$IMAGE:$SHA"
+          docker push "$IMAGE:latest"
+
+      - name: Copy compose + Caddyfile to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yml,Caddyfile"
+          target: ${{ secrets.EC2_APP_DIR }}
+
+      - name: Pull and restart on EC2
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          TAG_VAR: ${{ steps.target.outputs.tag_var }}
+          TAG: ${{ github.sha }}
+          SERVICE: ${{ steps.target.outputs.service }}
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          REGION: ${{ secrets.AWS_REGION }}
+          APP_DIR: ${{ secrets.EC2_APP_DIR }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: TAG_VAR,TAG,SERVICE,REGISTRY,REGION,APP_DIR
+          script: |
+            set -euo pipefail
+            cd "$APP_DIR"
+
+            # Update the image tag for this env in .env (used by compose).
+            if grep -q "^${TAG_VAR}=" .env; then
+              sed -i "s|^${TAG_VAR}=.*|${TAG_VAR}=${TAG}|" .env
+            else
+              echo "${TAG_VAR}=${TAG}" >> .env
+            fi
+
+            aws ecr get-login-password --region "$REGION" \
+              | docker login --username AWS --password-stdin "$REGISTRY"
+
+            docker compose pull "$SERVICE"
+            docker compose up -d --no-deps "$SERVICE"
+            docker compose up -d --no-deps caddy
+            docker image prune -f

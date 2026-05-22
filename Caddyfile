@@ -1,0 +1,30 @@
+{ # Email for Let's Encrypt account / expiry notices.
+email fromentj@oregonstate.edu
+}
+
+# Production
+
+osufoodable.app, www.osufoodable.app {
+encode zstd gzip
+
+    # Redirect apex<->www to canonical host.
+    @notapex host www.osufoodable.app
+    redir @notapex https://osufoodable.app{uri} permanent
+
+    reverse_proxy app-prod:5050
+
+}
+
+# Development (password-protected)
+
+dev.osufoodable.app {
+encode zstd gzip
+
+    # Generate the hash with: docker run --rm caddy:latest caddy hash-password
+    basicauth {
+    	developer $2a$14$0Kc7J9PDN1RRXRkNNr5lleUa5vg4u0v236NdbFoNoHrQyjuOKpJU.
+    }
+
+    reverse_proxy app-dev:5050
+
+}

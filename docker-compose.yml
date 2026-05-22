@@ -1,0 +1,44 @@
+services:
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Persist Let's Encrypt certs/account so restarts don't hit rate limits.
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web
+
+  app-prod:
+    image: ${PROD_IMAGE_URI}:${PROD_IMAGE_TAG:-latest}
+    pull_policy: always
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    expose:
+      - "5050"
+    networks:
+      - web
+
+  app-dev:
+    image: ${DEV_IMAGE_URI}:${DEV_IMAGE_TAG:-latest}
+    pull_policy: always
+    restart: unless-stopped
+    env_file:
+      - .env.dev
+    expose:
+      - "5050"
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
