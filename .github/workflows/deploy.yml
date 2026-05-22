@@ -106,5 +106,11 @@ jobs:
 
             docker compose pull "$SERVICE"
             docker compose up -d --no-deps "$SERVICE"
+
+            # Ensure Caddy is running, then hot-reload its config so any
+            # Caddyfile changes that arrived via scp take effect without
+            # dropping connections.
             docker compose up -d --no-deps caddy
+            docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile
+
             docker image prune -f
