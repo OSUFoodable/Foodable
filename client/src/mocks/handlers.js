@@ -67,6 +67,14 @@ function pickRecipeFromStore() {
   };
 }
 
+// Test-only helpers to reset the in-memory store and the lists store between tests.
+export function __resetMockStores() {
+  store = [];
+  listsStore = [];
+}
+
+let listsStore = [];
+
 export const handlers = [
   // ---- Ingredients ----
   http.get('/api/ingredients', async () => {
@@ -76,7 +84,7 @@ export const handlers = [
   http.post('/api/ingredients', async ({ request }) => {
     const body = await request.json();
     const item = {
-      id: crypto.randomUUID(),
+      _id: crypto.randomUUID(),
       name: String(body.name || '').trim(),
       qty: Number(body.qty || 0),
       unit: String(body.unit || 'count'),
@@ -88,7 +96,7 @@ export const handlers = [
 
   http.put('/api/ingredients/:id', async ({ params, request }) => {
     const body = await request.json();
-    const idx = store.findIndex((x) => x.id === params.id);
+    const idx = store.findIndex((x) => x._id === params.id || x.id === params.id);
     if (idx === -1) {
       return HttpResponse.json({ error: { message: 'Ingredient not found' } }, { status: 404 });
     }
@@ -97,7 +105,7 @@ export const handlers = [
   }),
 
   http.delete('/api/ingredients/:id', async ({ params }) => {
-    const idx = store.findIndex((x) => x.id === params.id);
+    const idx = store.findIndex((x) => x._id === params.id || x.id === params.id);
     if (idx === -1) {
       return HttpResponse.json({ error: { message: 'Ingredient not found' } }, { status: 404 });
     }
@@ -109,5 +117,41 @@ export const handlers = [
   http.get('/api/recipes', async () => {
     const recipe = pickRecipeFromStore();
     return HttpResponse.json(recipe);
+  }),
+
+  // ---- Grocery Lists ----
+  http.get('/api/lists', async () => {
+    return HttpResponse.json({ items: listsStore });
+  }),
+
+  http.post('/api/lists', async ({ request }) => {
+    const body = await request.json();
+    const list = {
+      _id: crypto.randomUUID(),
+      title: String(body.title || '').trim() || 'Grocery List',
+      items: Array.isArray(body.items) ? body.items : [],
+      createdAt: new Date().toISOString(),
+    };
+    listsStore.unshift(list);
+    return HttpResponse.json(list, { status: 201 });
+  }),
+
+  http.put('/api/lists/:id', async ({ params, request }) => {
+    const body = await request.json();
+    const idx = listsStore.findIndex((x) => x._id === params.id);
+    if (idx === -1) {
+      return HttpResponse.json({ error: { message: 'List not found' } }, { status: 404 });
+    }
+    listsStore[idx] = { ...listsStore[idx], ...body };
+    return HttpResponse.json(listsStore[idx]);
+  }),
+
+  http.delete('/api/lists/:id', async ({ params }) => {
+    const idx = listsStore.findIndex((x) => x._id === params.id);
+    if (idx === -1) {
+      return HttpResponse.json({ error: { message: 'List not found' } }, { status: 404 });
+    }
+    listsStore.splice(idx, 1);
+    return HttpResponse.json({ message: 'List deleted successfully' });
   }),
 ];

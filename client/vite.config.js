@@ -12,4 +12,10 @@ export default defineConfig({
 	optimizeDeps: {
 		include: ["jwt-decode"],
 	},
+	test: {
+		environment: "jsdom",
+		globals: true,
+		setupFiles: ["./vitest.setup.js"],
+		css: false,
+	},
 });
